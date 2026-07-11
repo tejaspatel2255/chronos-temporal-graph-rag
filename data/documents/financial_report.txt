@@ -1,0 +1,9 @@
+CHRONOS CORP - FINANCIAL NOTES Q2 2024
+
+Prepared by: Finance Division
+Date: June 1, 2024
+
+Summary:
+During the second quarter of 2024, Chronos Corp allocated significant research and development funding to the Project Chronos AI engine. This capital investment of $1.2M is aimed at securing market share against Apex Data Systems, our main rival in the RAG analytics space.
+
+Sales projections for the next quarter suggest a 15% increase in enterprise subscriptions, driven by early interest in our temporal-aware query processing engine.
