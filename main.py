@@ -1,24 +1,53 @@
+import argparse
 import sys
-from config.settings import settings, validate_settings
+import json
+from config.settings import validate_settings
+from src.workflow.runner import run_chronos_query
 
 def main():
-    print("====================================================")
-    print("       Project Chronos Scaffolding Initialized      ")
-    print("====================================================")
-    print(f"Python Version: {sys.version}")
-    print(f"Chroma DB Directory: {settings.CHROMA_PERSIST_DIR}")
-    print(f"Neo4j URI: {settings.NEO4J_URI}")
-    print(f"Neo4j User: {settings.NEO4J_USERNAME}")
-    print(f"OpenRouter Base URL: {settings.OPENROUTER_BASE_URL}")
-    
     missing = validate_settings()
     if missing:
-        print("\n[WARNING] The following required configuration variables are missing:")
+        print("[ERROR] Missing required configuration parameters:")
         for var in missing:
             print(f"  - {var}")
-        print("Please copy .env.example to .env and configure these values.")
-    else:
-        print("\n[SUCCESS] Environment variables loaded successfully!")
+        sys.exit(1)
+
+    parser = argparse.ArgumentParser(description="Chronos Self-Correcting Temporal Enterprise Analyst CLI")
+    group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument("--query", type=str, help="Run a single query through the RAG pipeline.")
+    group.add_argument("--interactive", action="store_true", help="Start an interactive session.")
+    
+    args = parser.parse_args()
+    
+    if args.query:
+        print(f"[*] Executing query: '{args.query}'")
+        result = run_chronos_query(args.query)
+        print("\n=== CHRONOS RESPONSE ===")
+        print(json.dumps(result, indent=2))
+        
+    elif args.interactive:
+        print("======================================================================")
+        print("          Project Chronos Interactive Mode (Type 'exit' to quit)     ")
+        print("======================================================================")
+        
+        while True:
+            try:
+                query = input("\nChronos Analyst > ").strip()
+                if not query:
+                    continue
+                if query.lower() in ["exit", "quit"]:
+                    print("[*] Exiting interactive mode. Goodbye!")
+                    break
+                    
+                print(f"[*] Running: '{query}'")
+                result = run_chronos_query(query)
+                print("\n=== CHRONOS RESPONSE ===")
+                print(json.dumps(result, indent=2))
+            except KeyboardInterrupt:
+                print("\n[*] Exiting interactive mode. Goodbye!")
+                break
+            except Exception as e:
+                print(f"[ERROR] Query failed: {e}")
 
 if __name__ == "__main__":
     main()
