@@ -21,3 +21,7 @@ pypdf>=4.3.1
 
 # Evaluation
 ragas>=0.1.11
+
+# Web Search Fallback
+duckduckgo-search>=6.1.0
+

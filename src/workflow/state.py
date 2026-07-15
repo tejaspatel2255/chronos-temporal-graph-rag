@@ -18,3 +18,4 @@ class ChronosState(TypedDict):
     context_used: List[Dict[str, Any]]
     attempts_log: List[Dict[str, Any]]
     web_fallback_run: bool
+    force_fallback: bool

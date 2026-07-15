@@ -4,7 +4,10 @@ class WebSearchFallback:
     def __init__(self):
         try:
             self.search_tool = DuckDuckGoSearchRun()
-        except Exception:
+        except Exception as e:
+            print(f"[ERROR] Failed to initialize DuckDuckGoSearchRun: {e}")
+            import traceback
+            traceback.print_exc()
             self.search_tool = None
 
     def search(self, query: str) -> list[dict]:
@@ -23,8 +26,12 @@ class WebSearchFallback:
                     "score": 0.85,
                     "source": "web"
                 }]
+            else:
+                print("[WARNING] DuckDuckGoSearchRun was not initialized. Using simulated web fallback.")
         except Exception as e:
             print(f"[WARNING] DuckDuckGo search failed: {e}. Using simulated web fallback.")
+            import traceback
+            traceback.print_exc()
             
         return [{
             "id": "web_search_fallback_mock",

@@ -22,7 +22,7 @@ def run():
     print("[*] Expecting: 2 query rewrites followed by a web search fallback...")
     
     try:
-        result = run_chronos_query(query)
+        result = run_chronos_query(query, force_fallback=True)
         print("\n=== CHRONOS RESPONSE ===")
         print(json.dumps(result, indent=2))
         

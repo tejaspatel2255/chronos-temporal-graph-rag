@@ -121,12 +121,18 @@ def validate_node(state: ChronosState) -> dict:
     confidence = validation.get("confidence", 0)
     is_valid = confidence >= 70
     
+    # Force fallback override for testing purposes
+    if state.get("force_fallback", False) and not state.get("web_fallback_run", False):
+        print("[!] force_fallback is active: Overriding validation to trigger correction/fallback path.")
+        confidence = 0
+        is_valid = False
+        
     # Log attempt
     log_entry = {
         "retry_index": state.get("retry_count", 0),
         "query_used": state["question"],
         "confidence": confidence,
-        "reasoning": validation.get("reasoning", "")
+        "reasoning": validation.get("reasoning", "") if not state.get("force_fallback", False) else "Forced validation failure for testing fallback."
     }
     current_logs = list(state.get("attempts_log", []))
     current_logs.append(log_entry)
