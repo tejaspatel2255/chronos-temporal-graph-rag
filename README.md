@@ -22,8 +22,14 @@ d:/Projects/Chronos Self Correcting Temporal Enterprise Analyst/
 ├── data/
 │   ├── documents/           # Source business memos and PDFs
 │   ├── structured/          # Structured database templates
-│   └── chroma_db/           # Chroma Vector database files (git-ignored)
+│   ├── chroma_db/           # Chroma Vector database files (git-ignored)
+│   └── logs/                # Local runtime logs and query history (git-ignored)
+├── frontend/                # React + Vite + TS + Tailwind frontend
+│   ├── src/                 # React components and layouts
+│   ├── package.json         # Node package configuration
+│   └── tailwind.config.js   # Tailwind style overrides
 ├── src/
+│   ├── api/                 # FastAPI routes and Pydantic schemas
 │   ├── ingestion/           # Vector pipeline: loader, chunker, embedder, vector store
 │   ├── retrieval/           # Retrieval strategies (vector, keyword, hybrid)
 │   ├── generation/          # Self-correcting answer generation logic
@@ -32,8 +38,9 @@ d:/Projects/Chronos Self Correcting Temporal Enterprise Analyst/
 │   └── utils/               # Shared helpers (LLM openrouter client)
 ├── tests/                   # Test suite
 ├── .env.example             # Template for API keys & DB passwords
-├── .gitignore               # Standard git-ignore rules
+├── .gitignore               # Standard git-ignore rules (ignores .env, build outputs, node_modules)
 ├── main.py                  # Initial scaffolding test script
+├── run_api.py               # Root runner to start FastAPI Uvicorn server
 ├── run_ingestion.py         # Ingestion pipeline CLI
 ├── run_graph_population.py  # Graph population pipeline CLI
 └── requirements.txt         # Project dependencies
@@ -110,3 +117,60 @@ Run the graph pipeline to extract semantic entity networks and populate Neo4j:
 python run_graph_population.py
 ```
 This script will output the created node distribution count and display verified Cypher relationship paths for verification.
+
+---
+
+## FastAPI Web Service (Phase 7)
+
+A FastAPI web service is available to wrap the LangGraph RAG pipeline.
+
+### Running the API
+Start the local API development server:
+```bash
+python run_api.py
+```
+This runs the API on `http://localhost:8000`.
+
+### Documentation
+Once the API is running, you can access:
+* **Interactive Swagger UI Docs**: [http://localhost:8000/docs](http://localhost:8000/docs)
+* **ReDoc Alternative Docs**: [http://localhost:8000/redoc](http://localhost:8000/redoc)
+
+### API Endpoints
+* **`POST /api/query`**: Run a query through the self-correcting RAG pipeline (accepts custom parameter `force_fallback: bool`).
+* **`GET /api/health`**: Inspect server status, Neo4j connectivity, and Chroma document ingest counts.
+* **`GET /api/history`**: Get a list of the last N execution events from the local JSONL query log.
+
+---
+
+## React Web Frontend (Phase 8)
+
+A modern, responsive React web application is available under `frontend/` to run queries visually.
+
+### Running the Frontend
+1. Navigate to the frontend directory:
+   ```bash
+   cd frontend
+   ```
+2. Install Node dependencies:
+   ```bash
+   npm install
+   ```
+3. Start the Vite dev server:
+   ```bash
+   npm run dev
+   ```
+This launches the application on `http://localhost:3000`.
+
+---
+
+## GitHub Security & Safe Pushing
+
+To ensure you do not leak proprietary credentials, API keys, or databases to public repositories, the following rules have been set up in `.gitignore`:
+
+1. **API Keys & Secrets (`.env` & `frontend/.env*`):** Any `.env` file containing `OPENROUTER_API_KEY`, database passwords, or endpoint paths is ignored. **Never commit `.env` files.**
+2. **Databases (`data/chroma_db/`):** The binary database files storing vector indexes are ignored. Only `data/chroma_db/.gitkeep` is tracked.
+3. **Execution History (`data/logs/`):** Local query run logs (`query_log.jsonl`) generated during queries are excluded.
+4. **Node Modules & Dev Builds (`node_modules/`, `dist/`, `build/`):** All local frontend compilation dependencies are excluded.
+
+

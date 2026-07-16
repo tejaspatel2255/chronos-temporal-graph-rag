@@ -16,8 +16,22 @@ __pycache__/
 # Databases & Data
 data/chroma_db/*
 !data/chroma_db/.gitkeep
+data/logs/*
+!data/logs/.gitkeep
 .chroma/
+
+# Node/Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/build/
+frontend/.env
+frontend/.env.local
+frontend/.env.development.local
+frontend/.env.test.local
+frontend/.env.production.local
+frontend/.vite/
 
 # OS Files
 .DS_Store
 Thumbs.db
+

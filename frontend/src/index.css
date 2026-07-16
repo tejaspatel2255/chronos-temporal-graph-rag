@@ -1,0 +1,60 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply antialiased selection:bg-indigo-500 selection:text-white;
+  }
+}
+
+/* Custom Markdown Content Styling */
+.prose h1 {
+  @apply text-2xl font-bold mt-6 mb-4 text-white border-b border-slate-700 pb-2;
+}
+
+.prose h2 {
+  @apply text-xl font-semibold mt-5 mb-3 text-slate-100;
+}
+
+.prose h3 {
+  @apply text-lg font-medium mt-4 mb-2 text-slate-200;
+}
+
+.prose p {
+  @apply mb-4 leading-relaxed text-slate-300 text-sm;
+}
+
+.prose ul, .prose ol {
+  @apply pl-6 mb-4 list-disc text-slate-300 text-sm space-y-2;
+}
+
+.prose li strong {
+  @apply text-slate-200 font-semibold;
+}
+
+.prose blockquote {
+  @apply border-l-4 border-indigo-500 pl-4 italic text-slate-400 my-4 bg-slate-800/40 py-2 pr-2 rounded-r;
+}
+
+.prose code {
+  @apply font-mono bg-slate-800 text-indigo-300 px-1.5 py-0.5 rounded text-xs border border-slate-700;
+}
+
+.prose strong {
+  @apply text-white font-semibold;
+}
+
+/* Scrollbar customizations */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-slate-900;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-slate-800 border border-slate-800 rounded-full hover:bg-slate-700;
+}
