@@ -15,6 +15,11 @@ def run():
             print(f"  - {var}")
         sys.exit(1)
 
+    # Validate LLM connectivity
+    from src.utils.llm_client import validate_llm_connectivity
+    validate_llm_connectivity()
+
+
     # Question about 2026 which is not in our internal documents (will trigger fallback)
     query = "What is the capital allocation for Project Chronos in the year 2026?"
     

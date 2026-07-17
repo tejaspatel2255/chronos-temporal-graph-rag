@@ -15,6 +15,11 @@ def run():
             print(f"  - {var}")
         sys.exit(1)
 
+    # Validate LLM connectivity
+    from src.utils.llm_client import validate_llm_connectivity
+    validate_llm_connectivity()
+
+
     print("[*] Initializing Self-Correction Generation Loop...")
     try:
         loop = SelfCorrectionLoop()

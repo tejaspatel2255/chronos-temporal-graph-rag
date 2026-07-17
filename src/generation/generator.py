@@ -13,16 +13,8 @@ def generate_draft(query: str, context_chunks: list[dict], llm_client) -> dict:
                 temperature=0.3
             )
             
-            # Sanity check: must be at least 30 chars, contain letters, and not be a safety label
-            is_valid = True
-            if not response or len(response.strip()) < 30:
-                is_valid = False
-            elif not re.search(r"[a-zA-Z]", response):
-                is_valid = False
-            elif "user safety:" in response.lower() or "safety:" in response.lower():
-                is_valid = False
-                
-            if not is_valid:
+            from src.utils.output_validation import is_degenerate_output
+            if is_degenerate_output(response):
                 print(f"[WARNING] Generated answer failed sanity check (attempt {attempt + 1}): '{response}'. Retrying...")
                 continue
             

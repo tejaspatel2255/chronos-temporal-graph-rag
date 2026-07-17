@@ -44,7 +44,10 @@ def log_query_to_file(question: str, response: dict):
 async def startup_event():
     """Startup event handler to pre-load ML models and prevent per-request reload latency."""
     print("[*] Starting FastAPI Web Server...")
+    from src.utils.llm_client import validate_llm_connectivity
+    validate_llm_connectivity()
     print("[*] Pre-loading embedding model and reranker...")
+
     try:
         from src.ingestion.embedder import Embedder
         _ = Embedder()

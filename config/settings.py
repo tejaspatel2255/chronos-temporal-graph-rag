@@ -15,6 +15,8 @@ class Settings(BaseSettings):
     # API Configurations
     OPENROUTER_API_KEY: str = Field(default="")
     OPENROUTER_BASE_URL: str = Field(default="https://openrouter.ai/api/v1")
+    OPENROUTER_MODEL: str = Field(default="meta-llama/llama-3.3-70b-instruct:free")
+
     
     # Graph Database Configurations
     NEO4J_URI: str = Field(default="bolt://localhost:7687")

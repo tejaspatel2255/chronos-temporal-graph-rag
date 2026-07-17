@@ -21,6 +21,11 @@ def run():
         print("[ERROR] OPENROUTER_API_KEY is not set in .env. LLM calls will fail.")
         sys.exit(1)
 
+    # Validate LLM connectivity
+    from src.utils.llm_client import validate_llm_connectivity
+    validate_llm_connectivity()
+
+
     # 1. Run Graph Population Pipeline
     try:
         populator = GraphPopulator()

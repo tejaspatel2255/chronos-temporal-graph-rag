@@ -12,6 +12,11 @@ def main():
             print(f"  - {var}")
         sys.exit(1)
 
+    # Validate LLM connectivity
+    from src.utils.llm_client import validate_llm_connectivity
+    validate_llm_connectivity()
+
+
     parser = argparse.ArgumentParser(description="Chronos Self-Correcting Temporal Enterprise Analyst CLI")
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument("--query", type=str, help="Run a single query through the RAG pipeline.")
