@@ -2,16 +2,21 @@
 venv/
 .venv/
 env/
+ENV/
 
 # Environment Variables
 .env
+*.env
+!.env.example
 
-# Python Cache
+# Python Cache & IDE
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
 .pytest_cache/
+.vscode/
+.idea/
 
 # Databases & Data
 data/chroma_db/*
@@ -19,6 +24,8 @@ data/chroma_db/*
 data/logs/*
 !data/logs/.gitkeep
 .chroma/
+*.sqlite3
+*.db
 
 # Node/Frontend
 frontend/node_modules/
@@ -31,7 +38,8 @@ frontend/.env.test.local
 frontend/.env.production.local
 frontend/.vite/
 
-# OS Files
+# OS & Temp Files
 .DS_Store
 Thumbs.db
-
+*.tmp
+*.log
