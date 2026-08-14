@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, ChangeEvent } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { 
   Search, 
@@ -17,7 +17,10 @@ import {
   History,
   Activity,
   Layers,
-  Cpu
+  Cpu,
+  UploadCloud,
+  FileCheck,
+  Folder
 } from 'lucide-react';
 
 interface Citation {
@@ -48,7 +51,6 @@ interface QueryResponse {
   attempts_log: AttemptLog[];
 }
 
-
 interface HealthStatus {
   status: string;
   neo4j_connected: boolean;
@@ -61,6 +63,16 @@ interface HistoryItem {
   confidence_score: number;
   is_valid: boolean;
   retries: number;
+}
+
+interface DocumentMetadata {
+  doc_id: string;
+  filename: string;
+  file_path: string;
+  file_size_bytes: number;
+  chunks_count: number;
+  created_at: string;
+  status: string;
 }
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
@@ -78,6 +90,14 @@ const LOADING_STEPS = [
   "Synthesizing final verified response from web fallback..."
 ];
 
+const formatBytes = (bytes: number) => {
+  if (bytes === 0) return '0 B';
+  const k = 1024;
+  const sizes = ['B', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+};
+
 export default function App() {
   // App States
   const [question, setQuestion] = useState('');
@@ -86,6 +106,12 @@ export default function App() {
   const [loadingStep, setLoadingStep] = useState(0);
   const [error, setError] = useState<string | null>(null);
   
+  // Sidebar State & Tabs
+  const [sidebarTab, setSidebarTab] = useState<'documents' | 'history'>('documents');
+  const [documents, setDocuments] = useState<DocumentMetadata[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadStatus, setUploadStatus] = useState<string | null>(null);
+
   // Results State
   const [result, setResult] = useState<QueryResponse | null>(null);
   const [activeQuestion, setActiveQuestion] = useState<string | null>(null);
@@ -97,10 +123,11 @@ export default function App() {
   const [healthErr, setHealthErr] = useState(false);
   const [history, setHistory] = useState<HistoryItem[]>([]);
   
-  // Local session cache for full results (allows instant viewing of session queries)
+  // Local session cache for full results
   const [sessionCache, setSessionCache] = useState<Record<string, QueryResponse>>({});
 
   const loadingIntervalRef = useRef<number | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   // Poll API Health
   const checkHealth = async () => {
@@ -122,7 +149,6 @@ export default function App() {
       const res = await fetch(`${API_BASE_URL}/api/history?limit=15`);
       if (res.ok) {
         const data = await res.json();
-        // Sort newest first
         setHistory(data.reverse());
       }
     } catch (e) {
@@ -130,16 +156,30 @@ export default function App() {
     }
   };
 
+  // Fetch Documents List
+  const fetchDocuments = async () => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/documents`);
+      if (res.ok) {
+        const data: DocumentMetadata[] = await res.json();
+        setDocuments(data);
+      }
+    } catch (e) {
+      console.error('Failed to fetch documents', e);
+    }
+  };
+
   useEffect(() => {
     checkHealth();
     fetchHistory();
+    fetchDocuments();
 
     // Poll health every 30 seconds
     const healthTimer = setInterval(checkHealth, 30000);
     return () => clearInterval(healthTimer);
   }, []);
 
-  // Loading indicator step rotation animation
+  // Loading step rotation animation
   useEffect(() => {
     if (isLoading) {
       setLoadingStep(0);
@@ -155,6 +195,46 @@ export default function App() {
       if (loadingIntervalRef.current) clearInterval(loadingIntervalRef.current);
     };
   }, [isLoading]);
+
+  // Handle Document Upload
+  const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    setUploadStatus(`Uploading & ingesting ${file.name}...`);
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const res = await fetch(`${API_BASE_URL}/api/ingest`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!res.ok) {
+        const errData = await res.json();
+        throw new Error(errData.detail || 'Ingestion failed');
+      }
+
+      const data = await res.json();
+      setUploadStatus(`✓ Ingested ${data.filename} (${data.chunks_count} chunks)`);
+      fetchDocuments();
+      checkHealth();
+
+      setTimeout(() => {
+        setUploadStatus(null);
+      }, 5000);
+    } catch (err: any) {
+      setUploadStatus(`❌ Ingestion Error: ${err.message}`);
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
 
   // Handle query submission
   const handleSubmit = async (qText: string, forceWeb: boolean = false) => {
@@ -185,13 +265,11 @@ export default function App() {
       const data: QueryResponse = await response.json();
       setResult(data);
       
-      // Store in session cache
       setSessionCache(prev => ({
         ...prev,
         [qText.toLowerCase().trim()]: data
       }));
 
-      // Refresh query log history
       fetchHistory();
     } catch (err: any) {
       setError(err.message || 'An unexpected error occurred. Please check the backend connection.');
@@ -207,7 +285,6 @@ export default function App() {
       setActiveQuestion(item.question);
       setError(null);
     } else {
-      // populate input and rerun
       setQuestion(item.question);
       handleSubmit(item.question);
     }
@@ -229,7 +306,6 @@ export default function App() {
 
   const status = getStatusDetails();
 
-  // Color helpers
   const getConfidenceColor = (score: number) => {
     if (score >= 70) return 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30';
     if (score >= 40) return 'text-amber-400 bg-amber-500/10 border-amber-500/30';
@@ -241,7 +317,7 @@ export default function App() {
   return (
     <div className="flex h-screen bg-slate-950 font-sans overflow-hidden">
       
-      {/* Sidebar - History & Logs */}
+      {/* Sidebar - Documents & Logs */}
       <aside className="w-80 bg-slate-900 border-r border-slate-800 flex flex-col justify-between shrink-0">
         <div className="flex flex-col grow overflow-hidden">
           
@@ -263,9 +339,9 @@ export default function App() {
                 <Activity className="w-3.5 h-3.5 mr-1.5 text-indigo-400" /> System Health
               </span>
               <button 
-                onClick={checkHealth}
+                onClick={() => { checkHealth(); fetchDocuments(); }}
                 className="text-xs text-slate-500 hover:text-slate-300 transition-colors p-1"
-                title="Refresh Status"
+                title="Refresh Status & Documents"
               >
                 <RefreshCw className="w-3 h-3" />
               </button>
@@ -281,11 +357,11 @@ export default function App() {
 
             <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-800/50 text-[11px] text-slate-400">
               <div>
-                <span className="block text-slate-500">Vector Index Count:</span>
-                <span className="font-semibold text-slate-300">{health ? health.chroma_document_count : '--'} docs</span>
+                <span className="block text-slate-500">Vector Index:</span>
+                <span className="font-semibold text-slate-300">{health ? health.chroma_document_count : '--'} chunks</span>
               </div>
               <div>
-                <span className="block text-slate-500">Neo4j Driver:</span>
+                <span className="block text-slate-500">Neo4j Graph:</span>
                 <span className={`font-semibold ${health?.neo4j_connected ? 'text-emerald-400' : 'text-slate-500'}`}>
                   {health?.neo4j_connected ? 'Connected' : 'Offline'}
                 </span>
@@ -293,59 +369,184 @@ export default function App() {
             </div>
           </div>
 
-          {/* History Section */}
-          <div className="mt-6 flex-1 flex flex-col min-h-0">
-            <div className="px-5 mb-2 flex items-center justify-between">
-              <h2 className="text-xs font-semibold text-slate-400 tracking-wider uppercase flex items-center">
-                <History className="w-3.5 h-3.5 mr-1.5" /> Recent Queries
-              </h2>
-              <button 
-                onClick={fetchHistory}
-                className="text-[10px] text-indigo-400 hover:text-indigo-300 transition-colors"
-              >
-                Refresh
-              </button>
-            </div>
+          {/* Sidebar Tab Switcher */}
+          <div className="mx-4 mt-4 p-1 bg-slate-950/80 rounded-lg border border-slate-800 flex space-x-1">
+            <button
+              onClick={() => setSidebarTab('documents')}
+              className={`flex-1 py-1.5 text-xs font-semibold rounded-md transition-all flex items-center justify-center space-x-1.5 ${
+                sidebarTab === 'documents' 
+                  ? 'bg-indigo-600 text-white shadow-sm' 
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              <Folder className="w-3.5 h-3.5" />
+              <span>Documents ({documents.length})</span>
+            </button>
+            
+            <button
+              onClick={() => setSidebarTab('history')}
+              className={`flex-1 py-1.5 text-xs font-semibold rounded-md transition-all flex items-center justify-center space-x-1.5 ${
+                sidebarTab === 'history' 
+                  ? 'bg-indigo-600 text-white shadow-sm' 
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              <History className="w-3.5 h-3.5" />
+              <span>Queries ({history.length})</span>
+            </button>
+          </div>
 
-            <div className="flex-1 overflow-y-auto px-4 pb-4 space-y-2">
-              {history.length === 0 ? (
-                <div className="text-center py-8 text-slate-500 text-xs">
-                  No query logs found. Try asking a question!
-                </div>
-              ) : (
-                history.map((item, idx) => {
-                  const hasCache = !!sessionCache[item.question.toLowerCase().trim()];
-                  return (
-                    <button
-                      key={idx}
-                      onClick={() => handleHistoryItemClick(item)}
-                      className="w-full text-left p-3 rounded-lg bg-slate-950/30 hover:bg-slate-800 border border-slate-800/60 transition-all group flex flex-col space-y-1.5"
-                    >
-                      <span className="text-xs font-medium text-slate-200 group-hover:text-indigo-400 transition-colors line-clamp-2">
-                        {item.question}
-                      </span>
-                      <div className="flex items-center justify-between w-full text-[10px] text-slate-500">
-                        <span className="flex items-center">
-                          <Clock className="w-2.5 h-2.5 mr-1" />
-                          {new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                        </span>
-                        <div className="flex items-center space-x-1.5">
-                          {hasCache && (
-                            <span className="px-1 text-[9px] bg-indigo-500/10 text-indigo-400 rounded-sm border border-indigo-500/20">
-                              Cached
+          {/* Documents Tab View */}
+          {sidebarTab === 'documents' && (
+            <div className="mt-3 flex-1 flex flex-col min-h-0 px-4">
+              {/* Document Upload Button */}
+              <div className="mb-3">
+                <input 
+                  type="file" 
+                  ref={fileInputRef} 
+                  onChange={handleFileChange}
+                  accept=".pdf,.txt,.md" 
+                  className="hidden" 
+                />
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isUploading}
+                  className="w-full py-2.5 px-3 bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-500/40 hover:border-indigo-500/60 rounded-lg text-indigo-300 text-xs font-semibold transition-all flex items-center justify-center space-x-2 group cursor-pointer disabled:opacity-50"
+                >
+                  {isUploading ? (
+                    <>
+                      <RefreshCw className="w-3.5 h-3.5 animate-spin text-indigo-400" />
+                      <span>Processing File...</span>
+                    </>
+                  ) : (
+                    <>
+                      <UploadCloud className="w-4 h-4 text-indigo-400 group-hover:scale-110 transition-transform" />
+                      <span>Upload Document (.pdf, .txt, .md)</span>
+                    </>
+                  )}
+                </button>
+
+                {uploadStatus && (
+                  <div className={`mt-2 p-2 rounded text-[11px] font-mono leading-tight ${
+                    uploadStatus.startsWith('✓') 
+                      ? 'bg-emerald-500/10 text-emerald-300 border border-emerald-500/20' 
+                      : uploadStatus.startsWith('❌')
+                      ? 'bg-rose-500/10 text-rose-300 border border-rose-500/20'
+                      : 'bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 animate-pulse'
+                  }`}>
+                    {uploadStatus}
+                  </div>
+                )}
+              </div>
+
+              {/* Documents List */}
+              <div className="flex-1 overflow-y-auto pb-4 space-y-2">
+                {documents.length === 0 ? (
+                  <div className="text-center py-8 text-slate-500 text-xs flex flex-col items-center space-y-2">
+                    <Folder className="w-8 h-8 text-slate-700" />
+                    <p>No documents found in knowledge base.</p>
+                    <p className="text-[10px] text-slate-600">Click upload above to add documents.</p>
+                  </div>
+                ) : (
+                  documents.map((doc, idx) => {
+                    const isPdf = doc.filename.endsWith('.pdf');
+                    const isMd = doc.filename.endsWith('.md');
+                    return (
+                      <div
+                        key={idx}
+                        className="p-3 rounded-lg bg-slate-950/40 border border-slate-800/80 hover:border-indigo-500/40 transition-all flex flex-col space-y-2 group"
+                      >
+                        <div className="flex items-start space-x-2.5">
+                          <div className={`p-1.5 rounded shrink-0 ${
+                            isPdf ? 'bg-rose-500/10 text-rose-400' : isMd ? 'bg-sky-500/10 text-sky-400' : 'bg-emerald-500/10 text-emerald-400'
+                          }`}>
+                            <FileText className="w-4 h-4" />
+                          </div>
+                          <div className="flex-1 overflow-hidden">
+                            <h4 className="text-xs font-semibold text-slate-200 group-hover:text-indigo-400 transition-colors truncate" title={doc.filename}>
+                              {doc.filename}
+                            </h4>
+                            <span className="text-[10px] text-slate-500 block">
+                              {formatBytes(doc.file_size_bytes)}
                             </span>
-                          )}
-                          <span className={`font-semibold ${item.confidence_score >= 70 ? 'text-emerald-400' : item.confidence_score >= 40 ? 'text-amber-400' : 'text-rose-400'}`}>
-                            Conf: {item.confidence_score}%
+                          </div>
+                        </div>
+
+                        <div className="flex items-center justify-between pt-1 border-t border-slate-800/40 text-[10px] text-slate-400">
+                          <span className="flex items-center text-slate-500">
+                            <Clock className="w-2.5 h-2.5 mr-1" />
+                            {new Date(doc.created_at).toLocaleDateString([], { month: 'short', day: 'numeric' })}
                           </span>
+                          <div className="flex items-center space-x-1.5">
+                            <span className="px-1.5 py-0.5 rounded bg-indigo-500/10 text-indigo-300 font-semibold border border-indigo-500/20">
+                              {doc.chunks_count} {doc.chunks_count === 1 ? 'chunk' : 'chunks'}
+                            </span>
+                            <span className="px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 font-semibold border border-emerald-500/20 flex items-center">
+                              <FileCheck className="w-2.5 h-2.5 mr-0.5" /> Ingested
+                            </span>
+                          </div>
                         </div>
                       </div>
-                    </button>
-                  );
-                })
-              )}
+                    );
+                  })
+                )}
+              </div>
             </div>
-          </div>
+          )}
+
+          {/* History Tab View */}
+          {sidebarTab === 'history' && (
+            <div className="mt-3 flex-1 flex flex-col min-h-0 px-4">
+              <div className="mb-2 flex items-center justify-between">
+                <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Saved Query Events</span>
+                <button 
+                  onClick={fetchHistory}
+                  className="text-[10px] text-indigo-400 hover:text-indigo-300 transition-colors"
+                >
+                  Refresh
+                </button>
+              </div>
+
+              <div className="flex-1 overflow-y-auto pb-4 space-y-2">
+                {history.length === 0 ? (
+                  <div className="text-center py-8 text-slate-500 text-xs">
+                    No query logs found. Try asking a question!
+                  </div>
+                ) : (
+                  history.map((item, idx) => {
+                    const hasCache = !!sessionCache[item.question.toLowerCase().trim()];
+                    return (
+                      <button
+                        key={idx}
+                        onClick={() => handleHistoryItemClick(item)}
+                        className="w-full text-left p-3 rounded-lg bg-slate-950/30 hover:bg-slate-800 border border-slate-800/60 transition-all group flex flex-col space-y-1.5"
+                      >
+                        <span className="text-xs font-medium text-slate-200 group-hover:text-indigo-400 transition-colors line-clamp-2">
+                          {item.question}
+                        </span>
+                        <div className="flex items-center justify-between w-full text-[10px] text-slate-500">
+                          <span className="flex items-center">
+                            <Clock className="w-2.5 h-2.5 mr-1" />
+                            {new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                          <div className="flex items-center space-x-1.5">
+                            {hasCache && (
+                              <span className="px-1 text-[9px] bg-indigo-500/10 text-indigo-400 rounded-sm border border-indigo-500/20">
+                                Cached
+                              </span>
+                            )}
+                            <span className={`font-semibold ${item.confidence_score >= 70 ? 'text-emerald-400' : item.confidence_score >= 40 ? 'text-amber-400' : 'text-rose-400'}`}>
+                              Conf: {item.confidence_score}%
+                            </span>
+                          </div>
+                        </div>
+                      </button>
+                    );
+                  })
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Footer info */}
@@ -502,11 +703,8 @@ export default function App() {
           {isLoading && (
             <div className="max-w-3xl mx-auto py-16 flex flex-col items-center justify-center space-y-8 bg-slate-900/20 border border-slate-900/60 rounded-2xl p-8 shadow-2xl backdrop-blur-sm">
               <div className="relative w-20 h-20">
-                {/* Outermost spinning ring */}
                 <div className="absolute inset-0 rounded-full border-4 border-slate-800 border-t-indigo-500 animate-spin"></div>
-                {/* Innermost ring */}
                 <div className="absolute inset-3 rounded-full border-4 border-slate-800 border-b-sky-400 animate-spin" style={{ animationDirection: 'reverse', animationDuration: '1.5s' }}></div>
-                {/* Center dot */}
                 <div className="absolute inset-7 rounded-full bg-slate-950 flex items-center justify-center text-xl">
                   ⏳
                 </div>

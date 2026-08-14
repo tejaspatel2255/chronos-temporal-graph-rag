@@ -33,3 +33,24 @@ class HealthResponse(BaseModel):
     status: str
     neo4j_connected: bool
     chroma_document_count: int
+
+class DocumentMetadata(BaseModel):
+    doc_id: str
+    filename: str
+    file_path: str
+    file_size_bytes: int
+    chunks_count: int
+    created_at: str
+    status: str
+
+class IngestResponse(BaseModel):
+    doc_id: str
+    filename: str
+    file_path: str
+    file_size_bytes: int
+    chunks_count: int
+    created_at: str
+    neo4j_status: str
+    entities_created: int
+    relationships_created: int
+    status: str

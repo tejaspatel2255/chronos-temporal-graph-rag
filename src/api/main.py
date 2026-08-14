@@ -1,11 +1,13 @@
 import os
 import json
 from datetime import datetime
-from fastapi import FastAPI, HTTPException
+from pathlib import Path
+from fastapi import FastAPI, HTTPException, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from src.workflow.runner import run_chronos_query
-from src.api.schemas import QueryRequest, QueryResponse, HealthResponse
+from src.api.schemas import QueryRequest, QueryResponse, HealthResponse, DocumentMetadata, IngestResponse
 from src.ingestion.vector_store import ChromaVectorStore
+from src.ingestion.pipeline import ingest_file, get_all_documents, DOCUMENTS_DIR
 
 app = FastAPI(
     title="Project Chronos API",
@@ -116,3 +118,47 @@ async def get_query_history(limit: int = 10):
     except Exception as e:
         print(f"[ERROR] Failed to read query history: {e}")
         return []
+
+@app.post("/api/ingest", response_model=IngestResponse)
+async def upload_and_ingest_document(file: UploadFile = File(...)):
+    """
+    Uploads a document file (.pdf, .txt, .md), saves it to data/documents/,
+    and executes vector embedding & knowledge graph extraction.
+    """
+    allowed_exts = {".pdf", ".txt", ".md"}
+    filename = file.filename or "uploaded_doc.txt"
+    ext = Path(filename).suffix.lower()
+
+    if ext not in allowed_exts:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Unsupported file extension '{ext}'. Allowed formats: .pdf, .txt, .md"
+        )
+
+    DOCUMENTS_DIR.mkdir(parents=True, exist_ok=True)
+    target_path = DOCUMENTS_DIR / filename
+
+    try:
+        content = await file.read()
+        with open(target_path, "wb") as f:
+            f.write(content)
+            
+        ingest_result = ingest_file(str(target_path))
+        return ingest_result
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(
+            status_code=500,
+            detail=f"Document ingestion failed: {str(e)}"
+        )
+
+@app.get("/api/documents", response_model=list[DocumentMetadata])
+async def list_documents():
+    """Returns status metadata cards for all uploaded/ingested documents."""
+    try:
+        return get_all_documents()
+    except Exception as e:
+        print(f"[ERROR] Failed to fetch documents list: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+

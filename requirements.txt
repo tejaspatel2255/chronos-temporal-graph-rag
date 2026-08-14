@@ -28,5 +28,6 @@ duckduckgo-search>=6.1.0
 # API Layer
 fastapi>=0.110.0
 uvicorn>=0.28.0
+python-multipart>=0.0.32
 
 
