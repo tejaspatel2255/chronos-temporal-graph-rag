@@ -20,8 +20,11 @@ import {
   Cpu,
   UploadCloud,
   FileCheck,
-  Folder
+  Folder,
+  Printer,
+  FileDown
 } from 'lucide-react';
+import { downloadMarkdownReport, exportPDFReport } from './utils/reportExporter';
 
 interface Citation {
   source: string;
@@ -810,9 +813,32 @@ export default function App() {
 
               {/* Synthesized Answer Box */}
               <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-xl">
-                <div className="flex items-center space-x-2.5 mb-4 border-b border-slate-800 pb-3">
-                  <BookOpen className="w-5 h-5 text-indigo-400" />
-                  <h3 className="text-sm font-bold tracking-wider text-slate-300 uppercase">Chronos Synthesized Report</h3>
+                <div className="flex items-center justify-between mb-4 border-b border-slate-800 pb-3 flex-wrap gap-2">
+                  <div className="flex items-center space-x-2.5">
+                    <BookOpen className="w-5 h-5 text-indigo-400" />
+                    <h3 className="text-sm font-bold tracking-wider text-slate-300 uppercase">Chronos Synthesized Report</h3>
+                  </div>
+
+                  {/* Executive Report Action Buttons */}
+                  <div className="flex items-center space-x-2">
+                    <button
+                      onClick={() => exportPDFReport(activeQuestion || 'Enterprise RAG Query', result)}
+                      className="px-3 py-1.5 bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/40 hover:border-indigo-500/60 text-xs font-semibold rounded-lg transition-all flex items-center space-x-1.5 shadow-sm"
+                      title="Generate printable PDF report with citations and audit trail"
+                    >
+                      <Printer className="w-3.5 h-3.5 text-indigo-400" />
+                      <span>Export PDF</span>
+                    </button>
+
+                    <button
+                      onClick={() => downloadMarkdownReport(activeQuestion || 'Enterprise RAG Query', result)}
+                      className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-semibold rounded-lg transition-all flex items-center space-x-1.5 shadow-sm"
+                      title="Download raw report as Markdown (.md)"
+                    >
+                      <FileDown className="w-3.5 h-3.5 text-slate-400" />
+                      <span>Download .md</span>
+                    </button>
+                  </div>
                 </div>
                 
                 <div className="prose max-w-none">
