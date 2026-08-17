@@ -4,6 +4,8 @@ from rank_bm25 import BM25Okapi
 from src.ingestion.loader import DocumentLoader
 from src.ingestion.chunker import TextChunker
 
+from typing import List, Dict, Any
+
 class BM25Searcher:
     def __init__(self):
         loader = DocumentLoader()
@@ -20,10 +22,10 @@ class BM25Searcher:
         else:
             self.bm25 = None
 
-    def _tokenize(self, text: str) -> list[str]:
+    def _tokenize(self, text: str) -> List[str]:
         return re.findall(r'\w+', text.lower())
 
-    def search(self, query: str, top_k: int = 20) -> list[dict]:
+    def search(self, query: str, top_k: int = 20) -> List[Dict[str, Any]]:
         """Performs lexical search using BM25 and returns normalized candidates."""
         if not self.bm25 or not self.chunks:
             return []
@@ -34,10 +36,12 @@ class BM25Searcher:
         candidates = []
         for idx, score in enumerate(scores):
             if score > 0:
+                chunk = self.chunks[idx]
+                chunk_id = chunk.metadata.get("chunk_id", f"bm25_chunk_{idx}")
                 candidates.append({
-                    "id": self.chunks[idx].metadata["chunk_id"],
-                    "text": self.chunks[idx].page_content,
-                    "metadata": self.chunks[idx].metadata,
+                    "id": chunk_id,
+                    "text": chunk.page_content,
+                    "metadata": chunk.metadata,
                     "score": float(score),
                     "source": "bm25"
                 })

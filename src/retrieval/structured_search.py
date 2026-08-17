@@ -2,11 +2,13 @@ import os
 from pathlib import Path
 import pandas as pd
 
+from typing import List, Dict, Any, Optional
+
 class StructuredSearcher:
     def __init__(self):
         self.structured_dir = Path(__file__).parent.parent.parent / "data" / "structured"
 
-    def search(self, query: str, entities: list[str] = None, timeframe: str = None, metrics: list[str] = None) -> list[dict]:
+    def search(self, query: str, entities: Optional[List[str]] = None, timeframe: Optional[str] = None, metrics: Optional[List[str]] = None) -> List[Dict[str, Any]]:
         """Queries CSV files in data/structured/ matching criteria and returns matching rows as candidates."""
         results = []
         if not self.structured_dir.exists():
@@ -49,7 +51,7 @@ class StructuredSearcher:
                         filtered_df = filtered_df[mask]
                 
                 # Format matching rows as text candidates
-                if len(filtered_df) < len(df) and not filtered_df.empty:
+                if not filtered_df.empty:
                     for idx, row in filtered_df.iterrows():
                         row_dict = row.to_dict()
                         row_text = ", ".join([f"{k}: {v}" for k, v in row_dict.items()])

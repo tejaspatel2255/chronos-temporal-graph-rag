@@ -1,16 +1,18 @@
+from typing import List, Dict, Any
+
 class HybridCombiner:
     def __init__(self, k: int = 60):
         self.k = k
 
     def combine(self, 
-                vector_results: list[dict], 
-                bm25_results: list[dict], 
-                graph_results: list[dict], 
-                structured_results: list[dict],
-                router_analysis: dict) -> list[dict]:
+                vector_results: List[Dict[str, Any]], 
+                bm25_results: List[Dict[str, Any]], 
+                graph_results: List[Dict[str, Any]], 
+                structured_results: List[Dict[str, Any]], 
+                router_analysis: Dict[str, Any]) -> List[Dict[str, Any]]:
         """Combines search results from multiple sources using Reciprocal Rank Fusion (RRF) with classification boosts."""
         
-        classifications = [c.upper() for c in router_analysis.get("classification", [])]
+        classifications = [str(c).upper() for c in router_analysis.get("classification", [])]
         has_metrics = len(router_analysis.get("metrics", [])) > 0
         has_multiple_entities = len(router_analysis.get("entities", [])) > 1
 
@@ -36,26 +38,29 @@ class HybridCombiner:
         rrf_scores = {}
         candidate_map = {}
 
-        def process_system_results(results: list[dict], source: str):
-            sorted_results = sorted(results, key=lambda x: x["score"], reverse=True)
+        def process_system_results(results: List[Dict[str, Any]], source: str):
+            if not results:
+                return
+            sorted_results = sorted(results, key=lambda x: x.get("score", 0.0) or 0.0, reverse=True)
             for rank, item in enumerate(sorted_results):
-                key = item.get("id") or item.get("text")
+                key = item.get("id") or item.get("text", f"{source}_{rank}")
+                item_score = float(item.get("score", 0.0) or 0.0)
                 
                 if key not in candidate_map:
                     candidate_map[key] = {
-                        "id": item["id"],
-                        "text": item["text"],
-                        "metadata": item["metadata"],
-                        "source": item["source"],
-                        "original_scores": {source: item["score"]}
+                        "id": item.get("id", str(key)),
+                        "text": item.get("text", ""),
+                        "metadata": item.get("metadata", {}),
+                        "source": item.get("source", source),
+                        "original_scores": {source: item_score}
                     }
                 else:
-                    candidate_map[key]["original_scores"][source] = item["score"]
+                    candidate_map[key]["original_scores"][source] = item_score
                     if source in ["structured", "graph"]:
                         candidate_map[key]["source"] = source
-                        candidate_map[key]["metadata"] = item["metadata"]
+                        candidate_map[key]["metadata"] = item.get("metadata", {})
 
-                rank_score = boosts[source] / (self.k + rank + 1)
+                rank_score = boosts.get(source, 1.0) / (self.k + rank + 1)
                 rrf_scores[key] = rrf_scores.get(key, 0.0) + rank_score
 
         # Process all sources
@@ -70,5 +75,5 @@ class HybridCombiner:
             candidate["score"] = rrf_score
             combined_candidates.append(candidate)
 
-        combined_candidates = sorted(combined_candidates, key=lambda x: x["score"], reverse=True)
+        combined_candidates = sorted(combined_candidates, key=lambda x: x.get("score", 0.0), reverse=True)
         return combined_candidates

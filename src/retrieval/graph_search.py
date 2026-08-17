@@ -1,10 +1,11 @@
+from typing import List, Dict, Any
 from src.graph.neo4j_client import Neo4jGraphStore
 
 class GraphSearcher:
     def __init__(self):
         pass
 
-    def search(self, entities: list[str]) -> list[dict]:
+    def search(self, entities: List[str]) -> List[Dict[str, Any]]:
         """Queries Neo4j for relationships connected to the list of entities."""
         if not entities:
             return []
@@ -15,23 +16,27 @@ class GraphSearcher:
                 for entity in entities:
                     paths = graph_store.get_relationship_paths(entity, max_depth=2)
                     for path in paths:
+                        nodes = path.get("nodes", [])
+                        relationships = path.get("relationships", [])
+
                         # Convert paths into structured candidates or documents
-                        nodes_str = " -> ".join([f"{n['name']} ({n['type']})" for n in path["nodes"]])
-                        rels_str = ", ".join([r["type"] for r in path["relationships"]])
+                        nodes_str = " -> ".join([f"{n.get('name', 'Unknown')} ({n.get('type', 'Entity')})" for n in nodes if isinstance(n, dict)])
+                        rels_str = ", ".join([r.get("type", "RELATED") for r in relationships if isinstance(r, dict)])
                         path_text = f"Knowledge Graph Path: {nodes_str} | Relationships: [{rels_str}]"
                         
                         # Gather properties
                         rel_props = {}
-                        for r in path["relationships"]:
-                            rel_props.update(r.get("properties", {}))
+                        for r in relationships:
+                            if isinstance(r, dict):
+                                rel_props.update(r.get("properties", {}))
                             
                         results.append({
                             "id": f"graph_{entity}_{rels_str}",
                             "text": path_text,
                             "metadata": {
                                 "source_entity": entity,
-                                "nodes": path["nodes"],
-                                "relationships": path["relationships"],
+                                "nodes": nodes,
+                                "relationships": relationships,
                                 "quarter": rel_props.get("quarter", ""),
                                 "date": rel_props.get("date", "")
                             },
