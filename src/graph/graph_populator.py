@@ -14,12 +14,12 @@ class GraphPopulator:
         
     def populate(self) -> dict:
         docs_dir = Path(__file__).parent.parent.parent / "data" / "documents"
-        print(f"[*] Loading documents from: {docs_dir.resolve()}")
+        print(f"[*] Loading documents from: {docs_dir.resolve()}", flush=True)
         docs = self.loader.load_directory(str(docs_dir))
         
-        print(f"[*] Chunking {len(docs)} documents...")
+        print(f"[*] Chunking {len(docs)} documents...", flush=True)
         chunks = self.chunker.split_documents(docs)
-        print(f"[✓] Created {len(chunks)} chunks.")
+        print(f"[✓] Created {len(chunks)} chunks.", flush=True)
         
         entities_created = 0
         relationships_created = 0
@@ -28,11 +28,12 @@ class GraphPopulator:
         with Neo4jGraphStore() as graph_store:
             # Iterate and populate
             for idx, chunk in enumerate(chunks):
-                print(f"[*] Processing chunk {idx + 1}/{len(chunks)}...")
-                text = chunk.page_content
                 doc_name = chunk.metadata.get("source", "unknown_doc")
+                print(f"\n[*] Processing chunk {idx + 1}/{len(chunks)} ({doc_name})...", flush=True)
+                text = chunk.page_content
                 
                 # Extract entities
+                print(f"  -> Extracting entities using LLM...", flush=True)
                 entities = extract_entities(text, self.llm_client)
                 
                 # Flatten entity categories into a single list

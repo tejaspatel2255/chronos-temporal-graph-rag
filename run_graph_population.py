@@ -4,9 +4,11 @@ from src.graph.neo4j_client import Neo4jGraphStore
 from config.settings import settings, validate_settings
 
 def run():
-    print("====================================================")
-    print("         Project Chronos Graph Population           ")
-    print("====================================================")
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(line_buffering=True)
+    print("====================================================", flush=True)
+    print("         Project Chronos Graph Population           ", flush=True)
+    print("====================================================", flush=True)
     
     # Check settings
     missing = validate_settings()
@@ -21,9 +23,6 @@ def run():
         print("[ERROR] OPENROUTER_API_KEY is not set in .env. LLM calls will fail.")
         sys.exit(1)
 
-    # Validate LLM connectivity
-    from src.utils.llm_client import validate_llm_connectivity
-    validate_llm_connectivity()
 
 
     # 1. Run Graph Population Pipeline
