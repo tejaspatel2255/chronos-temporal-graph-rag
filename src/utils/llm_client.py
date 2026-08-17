@@ -48,8 +48,6 @@ def validate_llm_connectivity():
             raise ValueError("LLM returned an empty or invalid response.")
         print(f"[*] [Startup Check] LLM validation successful. Active Model: '{settings.OPENROUTER_MODEL}'")
     except Exception as e:
-        print(f"\n[FATAL ERROR] LLM Startup Connection Check Failed for '{settings.OPENROUTER_MODEL}'!", file=sys.stderr)
-        print(f"Details: {str(e)}", file=sys.stderr)
-        print("Please verify your OPENROUTER_API_KEY and OPENROUTER_MODEL configurations in .env.", file=sys.stderr)
-        sys.exit(1)
+        print(f"[WARNING] LLM Startup Connection Check Warning for '{settings.OPENROUTER_MODEL}': {e}", file=sys.stderr)
+        print("[WARNING] The server will start, but queries requiring OpenRouter LLM will depend on active API keys.", file=sys.stderr)
 
