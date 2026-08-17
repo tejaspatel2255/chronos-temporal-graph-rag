@@ -1,4 +1,9 @@
 import sys
+print("====================================================", flush=True)
+print("         Project Chronos Graph Population           ", flush=True)
+print("====================================================", flush=True)
+print("[*] Initializing Project Chronos Graph Populator...", flush=True)
+
 from src.graph.graph_populator import GraphPopulator
 from src.graph.neo4j_client import Neo4jGraphStore
 from config.settings import settings, validate_settings
@@ -6,9 +11,6 @@ from config.settings import settings, validate_settings
 def run():
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(line_buffering=True)
-    print("====================================================", flush=True)
-    print("         Project Chronos Graph Population           ", flush=True)
-    print("====================================================", flush=True)
     
     # Check settings
     missing = validate_settings()
