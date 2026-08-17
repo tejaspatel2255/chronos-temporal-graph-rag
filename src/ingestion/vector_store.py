@@ -1,10 +1,7 @@
 import os
 import hashlib
 from typing import Optional, List, Dict, Any
-try:
-    import chromadb
-except ImportError:
-    chromadb = Any  # type: ignore
+import chromadb  # type: ignore
 
 from langchain_core.documents import Document
 from config.settings import settings
@@ -15,9 +12,6 @@ class ChromaVectorStore:
             persist_dir = settings.CHROMA_PERSIST_DIR
             
         os.makedirs(persist_dir, exist_ok=True)
-
-        if not hasattr(chromadb, "PersistentClient"):
-            raise RuntimeError("chromadb module is not installed in the active environment. Please activate venv.")
 
         # Initialize persistent client
         self.client = chromadb.PersistentClient(path=persist_dir)
