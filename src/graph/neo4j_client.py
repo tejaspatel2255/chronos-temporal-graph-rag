@@ -83,3 +83,51 @@ class Neo4jGraphStore:
                 ]
                 paths_list.append({"nodes": nodes, "relationships": relationships})
         return paths_list
+
+    def get_full_graph(self, limit: int = 150):
+        """Returns all entity nodes and their relationships for visualization."""
+        nodes_query = (
+            "MATCH (n:Entity) RETURN n.name AS name, n.type AS type, labels(n) AS labels "
+            f"LIMIT {limit}"
+        )
+        edges_query = (
+            "MATCH (a:Entity)-[r]->(b:Entity) "
+            "RETURN a.name AS source, b.name AS target, type(r) AS rel_type, "
+            "r.date AS date, r.quarter AS quarter "
+            f"LIMIT {limit * 3}"
+        )
+
+        nodes = []
+        links = []
+        seen_nodes = set()
+
+        with self.driver.session() as session:
+            node_result = session.run(nodes_query)
+            for record in node_result:
+                name = record["name"]
+                if name and name not in seen_nodes:
+                    seen_nodes.add(name)
+                    labels = [l for l in (record["labels"] or []) if l != "Entity"]
+                    entity_type = record["type"] or (labels[0] if labels else "Unknown")
+                    nodes.append({
+                        "id": name,
+                        "name": name,
+                        "type": entity_type,
+                        "labels": labels
+                    })
+
+            edge_result = session.run(edges_query)
+            for record in edge_result:
+                source = record["source"]
+                target = record["target"]
+                if source and target:
+                    links.append({
+                        "source": source,
+                        "target": target,
+                        "rel_type": record["rel_type"] or "RELATED_TO",
+                        "date": record["date"],
+                        "quarter": record["quarter"]
+                    })
+
+        return {"nodes": nodes, "links": links}
+

@@ -192,3 +192,17 @@ async def list_documents():
         print(f"[ERROR] Failed to fetch documents list: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.get("/api/graph")
+async def get_knowledge_graph(limit: int = 150):
+    """Returns all entity nodes and relationships from Neo4j for knowledge graph visualization."""
+    try:
+        from src.graph.neo4j_client import Neo4jGraphStore
+        store = Neo4jGraphStore()
+        graph_data = store.get_full_graph(limit=limit)
+        store.close()
+        return graph_data
+    except Exception as e:
+        print(f"[WARNING] Graph data fetch failed: {e}")
+        return {"nodes": [], "links": [], "error": str(e)}
+
+

@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, ChangeEvent } from 'react';
 import ReactMarkdown from 'react-markdown';
+import KnowledgeGraphView from './KnowledgeGraphView';
 import { 
   Search, 
   Database, 
@@ -18,6 +19,7 @@ import {
   Activity,
   Layers,
   Cpu,
+  Share2,
   UploadCloud,
   FileCheck,
   Folder,
@@ -360,6 +362,8 @@ export default function App() {
   };
 
   const isWebResult = result?.context_used.some(c => c.source === 'duckduckgo_web_search');
+
+  const [mainView, setMainView] = useState<'query' | 'graph'>('query');
 
   return (
     <div className="flex h-screen bg-slate-950 font-sans overflow-hidden">
@@ -705,7 +709,43 @@ export default function App() {
 
       {/* Main Panel */}
       <main className="flex-1 flex flex-col bg-slate-950 overflow-hidden">
-        
+
+        {/* Main View Tab Bar */}
+        <div className="px-6 py-3 border-b border-slate-800 bg-slate-900/30 flex items-center space-x-2 shrink-0">
+          <button
+            onClick={() => setMainView('query')}
+            className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center space-x-1.5 ${
+              mainView === 'query'
+                ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/20'
+                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
+            }`}
+          >
+            <Search className="w-3.5 h-3.5" />
+            <span>RAG Query</span>
+          </button>
+          <button
+            onClick={() => setMainView('graph')}
+            className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center space-x-1.5 ${
+              mainView === 'graph'
+                ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/20'
+                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
+            }`}
+          >
+            <Share2 className="w-3.5 h-3.5" />
+            <span>Knowledge Graph</span>
+          </button>
+        </div>
+
+        {/* Knowledge Graph View */}
+        {mainView === 'graph' && (
+          <div className="flex-1 min-h-0">
+            <KnowledgeGraphView apiBaseUrl={API_BASE_URL} />
+          </div>
+        )}
+
+        {/* Query View wrapper */}
+        {mainView === 'query' && <>
+
         {/* Header alert for Backend offline */}
         {healthErr && (
           <div className="bg-rose-500/10 border-b border-rose-500/20 px-6 py-3 flex items-center justify-between text-xs text-rose-400">
@@ -1102,6 +1142,7 @@ export default function App() {
             </div>
           )}
         </div>
+        </> }
       </main>
     </div>
   );
