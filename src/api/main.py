@@ -77,6 +77,9 @@ async def query_pipeline(request: QueryRequest):
 @app.get("/api/health", response_model=HealthResponse)
 async def health_check():
     """Returns database connectivity status and document ingest metrics."""
+    from src.utils.llm_client import get_active_provider_info
+    active_p_key, _ = get_active_provider_info()
+
     neo4j_connected = False
     try:
         from src.graph.neo4j_client import Neo4jGraphStore
@@ -96,8 +99,38 @@ async def health_check():
     return {
         "status": "healthy",
         "neo4j_connected": neo4j_connected,
-        "chroma_document_count": chroma_count
+        "chroma_document_count": chroma_count,
+        "active_llm_provider": active_p_key
     }
+
+@app.get("/api/providers")
+async def list_providers():
+    """Lists available LLM providers, active status, and configuration state."""
+    from src.utils.llm_client import PROVIDERS_CONFIG, get_active_provider_info
+    active_p_key, _ = get_active_provider_info()
+
+    result = []
+    for key, cfg in PROVIDERS_CONFIG.items():
+        is_configured = True if key == "ollama" else bool(cfg["api_key"])
+        result.append({
+            "key": key,
+            "name": cfg["name"],
+            "is_active": (key == active_p_key),
+            "configured": is_configured,
+            "model": cfg["default_model"]
+        })
+    return result
+
+@app.post("/api/providers/switch")
+async def switch_provider(req: dict):
+    """Switch active primary LLM provider at runtime."""
+    provider = req.get("provider")
+    from src.utils.llm_client import set_active_provider, PROVIDERS_CONFIG
+    if not provider or provider not in PROVIDERS_CONFIG:
+        raise HTTPException(status_code=400, detail=f"Invalid provider '{provider}'.")
+    
+    success = set_active_provider(provider)
+    return {"status": "success", "active_provider": provider}
 
 @app.get("/api/history")
 async def get_query_history(limit: int = 10):

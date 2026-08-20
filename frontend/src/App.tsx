@@ -58,6 +58,15 @@ interface HealthStatus {
   status: string;
   neo4j_connected: boolean;
   chroma_document_count: number;
+  active_llm_provider?: string;
+}
+
+interface ProviderItem {
+  key: string;
+  name: string;
+  is_active: boolean;
+  configured: boolean;
+  model: string;
 }
 
 interface HistoryItem {
@@ -110,8 +119,10 @@ export default function App() {
   const [error, setError] = useState<string | null>(null);
   
   // Sidebar State & Tabs
-  const [sidebarTab, setSidebarTab] = useState<'documents' | 'history'>('documents');
+  const [sidebarTab, setSidebarTab] = useState<'documents' | 'history' | 'settings'>('documents');
   const [documents, setDocuments] = useState<DocumentMetadata[]>([]);
+  const [providers, setProviders] = useState<ProviderItem[]>([]);
+  const [isSwitchingProvider, setIsSwitchingProvider] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadStatus, setUploadStatus] = useState<string | null>(null);
 
@@ -172,10 +183,43 @@ export default function App() {
     }
   };
 
+  // Fetch LLM Providers
+  const fetchProviders = async () => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/providers`);
+      if (res.ok) {
+        const data = await res.json();
+        setProviders(data);
+      }
+    } catch (e) {
+      console.error('Failed to fetch LLM providers', e);
+    }
+  };
+
+  const handleSwitchProvider = async (providerKey: string) => {
+    setIsSwitchingProvider(true);
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/providers/switch`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ provider: providerKey })
+      });
+      if (res.ok) {
+        await fetchProviders();
+        await checkHealth();
+      }
+    } catch (e) {
+      console.error('Failed to switch LLM provider', e);
+    } finally {
+      setIsSwitchingProvider(false);
+    }
+  };
+
   useEffect(() => {
     checkHealth();
     fetchHistory();
     fetchDocuments();
+    fetchProviders();
 
     // Poll health every 30 seconds
     const healthTimer = setInterval(checkHealth, 30000);
@@ -370,32 +414,51 @@ export default function App() {
                 </span>
               </div>
             </div>
+            
+            <div className="mt-2 pt-2 border-t border-slate-800/50 text-[11px]">
+              <span className="block text-slate-500">Active LLM Provider:</span>
+              <span className="font-semibold text-indigo-400 capitalize">
+                {health?.active_llm_provider || 'OpenRouter'}
+              </span>
+            </div>
           </div>
 
           {/* Sidebar Tab Switcher */}
           <div className="mx-4 mt-4 p-1 bg-slate-950/80 rounded-lg border border-slate-800 flex space-x-1">
             <button
               onClick={() => setSidebarTab('documents')}
-              className={`flex-1 py-1.5 text-xs font-semibold rounded-md transition-all flex items-center justify-center space-x-1.5 ${
+              className={`flex-1 py-1.5 text-[11px] font-semibold rounded-md transition-all flex items-center justify-center space-x-1 ${
                 sidebarTab === 'documents' 
                   ? 'bg-indigo-600 text-white shadow-sm' 
                   : 'text-slate-400 hover:text-slate-200'
               }`}
             >
-              <Folder className="w-3.5 h-3.5" />
-              <span>Documents ({documents.length})</span>
+              <Folder className="w-3 h-3" />
+              <span>Docs ({documents.length})</span>
             </button>
             
             <button
               onClick={() => setSidebarTab('history')}
-              className={`flex-1 py-1.5 text-xs font-semibold rounded-md transition-all flex items-center justify-center space-x-1.5 ${
+              className={`flex-1 py-1.5 text-[11px] font-semibold rounded-md transition-all flex items-center justify-center space-x-1 ${
                 sidebarTab === 'history' 
                   ? 'bg-indigo-600 text-white shadow-sm' 
                   : 'text-slate-400 hover:text-slate-200'
               }`}
             >
-              <History className="w-3.5 h-3.5" />
-              <span>Queries ({history.length})</span>
+              <History className="w-3 h-3" />
+              <span>History</span>
+            </button>
+
+            <button
+              onClick={() => setSidebarTab('settings')}
+              className={`flex-1 py-1.5 text-[11px] font-semibold rounded-md transition-all flex items-center justify-center space-x-1 ${
+                sidebarTab === 'settings' 
+                  ? 'bg-indigo-600 text-white shadow-sm' 
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              <Cpu className="w-3 h-3" />
+              <span>LLM</span>
             </button>
           </div>
 
@@ -547,6 +610,77 @@ export default function App() {
                     );
                   })
                 )}
+              </div>
+            </div>
+          )}
+
+          {/* LLM Settings Tab View */}
+          {sidebarTab === 'settings' && (
+            <div className="mt-3 flex-1 flex flex-col min-h-0 px-4">
+              <div className="mb-2 flex items-center justify-between">
+                <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Active LLM Provider</span>
+                <button 
+                  onClick={fetchProviders}
+                  className="text-[10px] text-indigo-400 hover:text-indigo-300 transition-colors"
+                >
+                  Refresh
+                </button>
+              </div>
+
+              <div className="flex-1 overflow-y-auto pb-4 space-y-2.5">
+                {providers.length === 0 ? (
+                  <div className="text-center py-8 text-slate-500 text-xs">
+                    Loading provider configurations...
+                  </div>
+                ) : (
+                  providers.map((p) => (
+                    <div
+                      key={p.key}
+                      onClick={() => !p.is_active && p.configured && handleSwitchProvider(p.key)}
+                      className={`p-3 rounded-lg border transition-all flex flex-col space-y-1.5 cursor-pointer ${
+                        p.is_active 
+                          ? 'bg-indigo-600/15 border-indigo-500/60 shadow-sm' 
+                          : p.configured 
+                          ? 'bg-slate-950/40 border-slate-800 hover:border-slate-700' 
+                          : 'bg-slate-950/20 border-slate-900 opacity-50 cursor-not-allowed'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className={`text-xs font-bold ${p.is_active ? 'text-indigo-300' : 'text-slate-200'}`}>
+                          {p.name}
+                        </span>
+                        {p.is_active && (
+                          <span className="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider bg-indigo-500 text-white shadow-sm">
+                            Active Primary
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="text-[10px] font-mono text-slate-400 truncate">
+                        Model: <span className="text-slate-300">{p.model}</span>
+                      </div>
+
+                      <div className="flex items-center justify-between pt-1 border-t border-slate-800/40 text-[10px]">
+                        <span className={p.configured ? 'text-emerald-400 font-semibold' : 'text-rose-400 font-semibold'}>
+                          {p.configured ? '✓ API Configured' : '❌ Key Missing in .env'}
+                        </span>
+
+                        {!p.is_active && p.configured && (
+                          <span className="text-indigo-400 hover:underline font-semibold">
+                            {isSwitchingProvider ? 'Switching...' : 'Switch to Primary'}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  ))
+                )}
+
+                <div className="p-3 rounded-lg bg-slate-950/80 border border-slate-800/80 text-[11px] text-slate-400 space-y-1 mt-2">
+                  <span className="font-semibold text-slate-300 block">⚡ Failover Behavior</span>
+                  <p className="text-[10px] leading-relaxed text-slate-400">
+                    If your active primary model encounters rate limits or errors, Chronos automatically fails over to the next configured model in sequence.
+                  </p>
+                </div>
               </div>
             </div>
           )}

@@ -33,6 +33,17 @@ class HealthResponse(BaseModel):
     status: str
     neo4j_connected: bool
     chroma_document_count: int
+    active_llm_provider: str
+
+class ProviderSwitchRequest(BaseModel):
+    provider: str = Field(..., description="Target provider key (openrouter, groq, ollama, openai)")
+
+class ProviderInfo(BaseModel):
+    key: str
+    name: str
+    is_active: bool
+    configured: bool
+    model: str
 
 class DocumentMetadata(BaseModel):
     doc_id: str
