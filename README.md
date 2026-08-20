@@ -5,9 +5,9 @@ Project Chronos is a self-correcting, temporal-aware GraphRAG (Graph Retrieval-A
 ---
 
 ## Key Features
-* **UI Document Upload & Ingestion**: Direct drag-and-drop or single-click document upload (`.pdf`, `.txt`, `.md`) from the React frontend, automatically chunking text, generating embeddings into ChromaDB, and populating Neo4j entity graphs.
+* **UI Document Upload & Ingestion**: Direct drag-and-drop or single-click document upload (`.pdf`, `.docx`, `.xlsx`, `.csv`, `.txt`, `.md`) from the React frontend, automatically chunking text, generating embeddings into ChromaDB, and populating Neo4j entity graphs.
 * **Document Status Cards**: Real-time sidebar status cards displaying file size, total chunk index count, created timestamp, and ingestion status.
-* **Recursive Document Loader**: Supports PDF, `.txt`, and `.md` formats, generating unique document MD5 hashes and capturing absolute temporal modification dates.
+* **Recursive Multi-Format Loader**: Supports PDF, Word Memos (`.docx`), Financial Spreadsheets (`.xlsx`, `.csv`), `.txt`, and `.md` formats, generating unique document MD5 hashes and capturing absolute temporal modification dates.
 * **Semantic Vector Storage**: Chunks texts and embeds them using local `all-MiniLM-L6-v2` SentenceTransformers into a persistent ChromaDB instance.
 * **Auto-Routing Entity Extraction**: Leverages OpenRouter's `openrouter/free` LLM router to flat-extract `people`, `companies`, `products`, `events`, and `metrics` from raw text chunks.
 * **Knowledge Graph Construction**: Populates a local Neo4j database using transactional Cypher queries, linking entities together with temporal attributes (`date`, `quarter`) and anchoring them to document nodes via `MENTIONED_IN` relationships.

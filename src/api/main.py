@@ -155,14 +155,14 @@ async def upload_and_ingest_document(file: UploadFile = File(...)):
     Uploads a document file (.pdf, .txt, .md), saves it to data/documents/,
     and executes vector embedding & knowledge graph extraction.
     """
-    allowed_exts = {".pdf", ".txt", ".md"}
+    allowed_exts = {".pdf", ".txt", ".md", ".docx", ".xlsx", ".xls", ".csv"}
     filename = file.filename or "uploaded_doc.txt"
     ext = Path(filename).suffix.lower()
 
     if ext not in allowed_exts:
         raise HTTPException(
             status_code=400,
-            detail=f"Unsupported file extension '{ext}'. Allowed formats: .pdf, .txt, .md"
+            detail=f"Unsupported file extension '{ext}'. Allowed formats: .pdf, .txt, .md, .docx, .xlsx, .xls, .csv"
         )
 
     DOCUMENTS_DIR.mkdir(parents=True, exist_ok=True)

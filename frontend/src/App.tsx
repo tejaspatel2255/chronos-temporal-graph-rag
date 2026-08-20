@@ -471,7 +471,7 @@ export default function App() {
                   type="file" 
                   ref={fileInputRef} 
                   onChange={handleFileChange}
-                  accept=".pdf,.txt,.md" 
+                  accept=".pdf,.txt,.md,.docx,.xlsx,.xls,.csv" 
                   className="hidden" 
                 />
                 <button
@@ -487,7 +487,7 @@ export default function App() {
                   ) : (
                     <>
                       <UploadCloud className="w-4 h-4 text-indigo-400 group-hover:scale-110 transition-transform" />
-                      <span>Upload Document (.pdf, .txt, .md)</span>
+                      <span>Upload Doc (.pdf, .xlsx, .docx, .txt, .csv)</span>
                     </>
                   )}
                 </button>
@@ -517,6 +517,8 @@ export default function App() {
                   documents.map((doc, idx) => {
                     const isPdf = doc.filename.endsWith('.pdf');
                     const isMd = doc.filename.endsWith('.md');
+                    const isXls = doc.filename.endsWith('.xlsx') || doc.filename.endsWith('.xls') || doc.filename.endsWith('.csv');
+                    const isDocx = doc.filename.endsWith('.docx');
                     return (
                       <div
                         key={idx}
@@ -524,7 +526,15 @@ export default function App() {
                       >
                         <div className="flex items-start space-x-2.5">
                           <div className={`p-1.5 rounded shrink-0 ${
-                            isPdf ? 'bg-rose-500/10 text-rose-400' : isMd ? 'bg-sky-500/10 text-sky-400' : 'bg-emerald-500/10 text-emerald-400'
+                            isPdf 
+                              ? 'bg-rose-500/10 text-rose-400' 
+                              : isXls
+                              ? 'bg-emerald-500/10 text-emerald-400'
+                              : isDocx
+                              ? 'bg-indigo-500/10 text-indigo-400'
+                              : isMd 
+                              ? 'bg-sky-500/10 text-sky-400' 
+                              : 'bg-slate-500/10 text-slate-400'
                           }`}>
                             <FileText className="w-4 h-4" />
                           </div>
