@@ -1,4 +1,4 @@
-from typing import TypedDict, List, Dict, Any
+from typing import TypedDict, List, Dict, Any, Optional
 
 class ChronosState(TypedDict):
     question: str
@@ -19,3 +19,4 @@ class ChronosState(TypedDict):
     attempts_log: List[Dict[str, Any]]
     web_fallback_run: bool
     force_fallback: bool
+    conversation_history: List[Dict[str, Any]]  # Multi-turn chat memory

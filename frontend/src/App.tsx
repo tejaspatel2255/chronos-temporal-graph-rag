@@ -145,6 +145,20 @@ export default function App() {
   const loadingIntervalRef = useRef<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
+  const [sessionId] = useState<string>(() => 'session_' + Math.random().toString(36).substring(2, 9));
+  const [chatTurnCount, setChatTurnCount] = useState<number>(0);
+
+  const handleClearSession = async () => {
+    try {
+      await fetch(`${API_BASE_URL}/api/chat/session/${sessionId}`, { method: 'DELETE' });
+      setChatTurnCount(0);
+      setResult(null);
+      setActiveQuestion('');
+    } catch (e) {
+      console.error('Failed to clear chat session memory:', e);
+    }
+  };
+
   // Poll API Health
   const checkHealth = async () => {
     try {
@@ -303,7 +317,8 @@ export default function App() {
         },
         body: JSON.stringify({
           question: qText,
-          force_fallback: forceWeb
+          force_fallback: forceWeb,
+          session_id: sessionId
         }),
       });
 
@@ -313,6 +328,7 @@ export default function App() {
 
       const data: QueryResponse = await response.json();
       setResult(data);
+      setChatTurnCount(prev => prev + 1);
       
       setSessionCache(prev => ({
         ...prev,
@@ -734,6 +750,17 @@ export default function App() {
             <Share2 className="w-3.5 h-3.5" />
             <span>Knowledge Graph</span>
           </button>
+
+          {chatTurnCount > 0 && (
+            <button
+              onClick={handleClearSession}
+              title="Clear multi-turn conversation memory"
+              className="ml-auto px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 border border-slate-800 hover:border-rose-500/30 transition-all flex items-center space-x-1.5"
+            >
+              <RefreshCw className="w-3 h-3" />
+              <span>Reset Chat Memory ({chatTurnCount} turns)</span>
+            </button>
+          )}
         </div>
 
         {/* Knowledge Graph View */}

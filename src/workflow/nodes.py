@@ -93,11 +93,12 @@ def rerank_node(state: ChronosState) -> dict:
     }
 
 def generate_node(state: ChronosState) -> dict:
-    """Generates drafted answer with inline citations using context chunks."""
+    """Generates drafted answer with inline citations using context chunks and conversation history."""
     query = state["question"]
     context = state["reranked_candidates"]
-    print("[*] [LangGraph Node: Generate] Drafting response using context...")
-    draft = generate_draft(query, context, llm_client)
+    history = state.get("conversation_history", [])
+    print("[*] [LangGraph Node: Generate] Drafting response using context and conversation history...")
+    draft = generate_draft(query, context, llm_client, conversation_history=history)
     return {
         "draft_answer": draft["answer"],
         "citations": draft["raw_citations"],

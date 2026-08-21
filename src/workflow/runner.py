@@ -4,7 +4,7 @@ from src.workflow.output_formatter import format_chronos_output
 # Instantiate graph once during import to avoid reloading dependencies
 chronos_graph = build_chronos_graph()
 
-def run_chronos_query(question: str, force_fallback: bool = False) -> dict:
+def run_chronos_query(question: str, force_fallback: bool = False, conversation_history: list = None) -> dict:
     """Executes the query through the compiled LangGraph workflow state machine."""
     initial_state = {
         "question": question,
@@ -24,7 +24,8 @@ def run_chronos_query(question: str, force_fallback: bool = False) -> dict:
         "context_used": [],
         "attempts_log": [],
         "web_fallback_run": False,
-        "force_fallback": force_fallback
+        "force_fallback": force_fallback,
+        "conversation_history": conversation_history or []
     }
     
     try:

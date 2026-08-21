@@ -7,8 +7,8 @@ SYSTEM_PROMPT = (
     "4. Keep your answer highly structured, using bullet points or clear headings where appropriate."
 )
 
-def build_generation_prompt(query: str, context_chunks: list[dict]) -> str:
-    """Formats the query and the top-5 reranked context chunks into a generation prompt."""
+def build_generation_prompt(query: str, context_chunks: list[dict], conversation_history: list[dict] = None) -> str:
+    """Formats the query, conversation history, and top-5 reranked context chunks into a generation prompt."""
     context_str = ""
     for idx, chunk in enumerate(context_chunks):
         source_name = chunk.get("metadata", {}).get("source", "unknown")
@@ -17,13 +17,24 @@ def build_generation_prompt(query: str, context_chunks: list[dict]) -> str:
         context_str += f"--- Context Chunk {idx + 1} ---\n"
         context_str += f"Source: {source_name} | Chunk ID: {chunk_id}\n"
         context_str += f"Content: {text.strip()}\n\n"
-        
+
+    # Build conversation history string
+    history_str = ""
+    if conversation_history:
+        history_str = "--- Previous Conversation ---\n"
+        for turn in conversation_history[-6:]:  # Last 3 Q&A pairs max
+            role_label = "User" if turn["role"] == "user" else "Assistant"
+            history_str += f"{role_label}: {turn['content']}\n"
+        history_str += "\n"
+
     prompt = (
+        f"{history_str}"
         f"Context information:\n\n{context_str}"
-        f"User Query: {query}\n\n"
-        "Generate your cited, structured answer based on the context information above:"
+        f"Current User Query: {query}\n\n"
+        "Generate your cited, structured answer based on the context information and conversation history above:"
     )
     return prompt
+
 
 VALIDATION_PROMPT = (
     "You are an independent RAG answer validation assistant.\n"

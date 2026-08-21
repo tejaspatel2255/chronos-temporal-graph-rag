@@ -1,9 +1,9 @@
 import re
 from src.generation.prompts import SYSTEM_PROMPT, build_generation_prompt
 
-def generate_draft(query: str, context_chunks: list[dict], llm_client) -> dict:
-    """Generates a draft answer using OpenRouter and extracts inline source citations."""
-    prompt = build_generation_prompt(query, context_chunks)
+def generate_draft(query: str, context_chunks: list[dict], llm_client, conversation_history: list[dict] = None) -> dict:
+    """Generates a draft answer using the LLM and extracts inline source citations."""
+    prompt = build_generation_prompt(query, context_chunks, conversation_history=conversation_history)
     
     for attempt in range(2):
         try:

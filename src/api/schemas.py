@@ -1,9 +1,14 @@
 from pydantic import BaseModel, Field
 from typing import List, Dict, Any, Optional
 
+class ChatMessage(BaseModel):
+    role: str  # 'user' or 'assistant'
+    content: str
+
 class QueryRequest(BaseModel):
     question: str = Field(..., description="The user query to run through the self-correcting RAG pipeline.")
     force_fallback: bool = Field(False, description="If True, forces the pipeline to route to the web search fallback.")
+    session_id: Optional[str] = Field(None, description="Session ID for multi-turn conversation memory.")
 
 class Citation(BaseModel):
     source: str

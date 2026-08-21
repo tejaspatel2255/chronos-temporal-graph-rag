@@ -56,15 +56,31 @@ async def startup_event():
     except Exception as e:
         print(f"[WARNING] Model pre-loading encountered an error: {e}")
 
+# In-memory session store for multi-turn chat memory
+CHAT_SESSIONS: dict[str, list[dict]] = {}
+
 @app.post("/api/query", response_model=QueryResponse)
 async def query_pipeline(request: QueryRequest):
     """Executes a user query through the LangGraph self-correcting state machine."""
     try:
-        result = run_chronos_query(request.question, force_fallback=request.force_fallback)
-        
+        session_id = request.session_id or "default"
+        history = CHAT_SESSIONS.get(session_id, [])
+
+        result = run_chronos_query(
+            request.question,
+            force_fallback=request.force_fallback,
+            conversation_history=history
+        )
+
+        # Append turn to session memory
+        if session_id not in CHAT_SESSIONS:
+            CHAT_SESSIONS[session_id] = []
+        CHAT_SESSIONS[session_id].append({"role": "user", "content": request.question})
+        CHAT_SESSIONS[session_id].append({"role": "assistant", "content": result.get("answer", "")})
+
         # Log execution outcome to local logs
         log_query_to_file(request.question, result)
-        
+
         return result
     except Exception as e:
         import traceback
@@ -73,6 +89,14 @@ async def query_pipeline(request: QueryRequest):
             status_code=500,
             detail=f"Internal Server Error occurred during query execution: {str(e)}"
         )
+
+@app.delete("/api/chat/session/{session_id}")
+async def clear_chat_session(session_id: str):
+    """Clears conversation history for a given session ID."""
+    if session_id in CHAT_SESSIONS:
+        del CHAT_SESSIONS[session_id]
+    return {"status": "success", "message": f"Session {session_id} memory cleared."}
+
 
 @app.get("/api/health", response_model=HealthResponse)
 async def health_check():
