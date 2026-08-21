@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef, ChangeEvent } from 'react';
 import ReactMarkdown from 'react-markdown';
 import KnowledgeGraphView from './KnowledgeGraphView';
+import TemporalTimelineView from './TemporalTimelineView';
+import ConfidenceDashboardView from './ConfidenceDashboardView';
 import { 
   Search, 
   Database, 
@@ -27,6 +29,7 @@ import {
   FileDown
 } from 'lucide-react';
 import { downloadMarkdownReport, exportPDFReport } from './utils/reportExporter';
+import { exportWordDocxReport } from './utils/docxExporter';
 
 interface Citation {
   source: string;
@@ -379,7 +382,7 @@ export default function App() {
 
   const isWebResult = result?.context_used.some(c => c.source === 'duckduckgo_web_search');
 
-  const [mainView, setMainView] = useState<'query' | 'graph'>('query');
+  const [mainView, setMainView] = useState<'query' | 'graph' | 'timeline' | 'analytics'>('query');
 
   return (
     <div className="flex h-screen bg-slate-950 font-sans overflow-hidden">
@@ -750,6 +753,28 @@ export default function App() {
             <Share2 className="w-3.5 h-3.5" />
             <span>Knowledge Graph</span>
           </button>
+          <button
+            onClick={() => setMainView('timeline')}
+            className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center space-x-1.5 ${
+              mainView === 'timeline'
+                ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/20'
+                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
+            }`}
+          >
+            <Clock className="w-3.5 h-3.5" />
+            <span>Timeline</span>
+          </button>
+          <button
+            onClick={() => setMainView('analytics')}
+            className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center space-x-1.5 ${
+              mainView === 'analytics'
+                ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/20'
+                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
+            }`}
+          >
+            <Activity className="w-3.5 h-3.5" />
+            <span>Confidence Analytics</span>
+          </button>
 
           {chatTurnCount > 0 && (
             <button
@@ -767,6 +792,20 @@ export default function App() {
         {mainView === 'graph' && (
           <div className="flex-1 min-h-0">
             <KnowledgeGraphView apiBaseUrl={API_BASE_URL} />
+          </div>
+        )}
+
+        {/* Temporal Timeline View */}
+        {mainView === 'timeline' && (
+          <div className="flex-1 min-h-0">
+            <TemporalTimelineView apiBaseUrl={API_BASE_URL} />
+          </div>
+        )}
+
+        {/* Confidence Analytics Dashboard View */}
+        {mainView === 'analytics' && (
+          <div className="flex-1 min-h-0">
+            <ConfidenceDashboardView apiBaseUrl={API_BASE_URL} />
           </div>
         )}
 
@@ -1039,6 +1078,15 @@ export default function App() {
                     >
                       <Printer className="w-3.5 h-3.5 text-indigo-400" />
                       <span>Export PDF</span>
+                    </button>
+
+                    <button
+                      onClick={() => exportWordDocxReport(activeQuestion || 'Enterprise RAG Query', result)}
+                      className="px-3 py-1.5 bg-blue-600/20 hover:bg-blue-600/30 text-blue-300 border border-blue-500/40 hover:border-blue-500/60 text-xs font-semibold rounded-lg transition-all flex items-center space-x-1.5 shadow-sm"
+                      title="Export report as Word document (.docx)"
+                    >
+                      <FileText className="w-3.5 h-3.5 text-blue-400" />
+                      <span>Export Word</span>
                     </button>
 
                     <button

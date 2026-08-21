@@ -13,7 +13,10 @@ Project Chronos is a self-correcting, temporal-aware GraphRAG (Graph Retrieval-A
 * **Knowledge Graph Construction**: Populates a local Neo4j database using transactional Cypher queries, linking entities together with temporal attributes (`date`, `quarter`) and anchoring them to document nodes via `MENTIONED_IN` relationships.
 * **Self-Correcting LangGraph State Machine**: Grounded validation loop that automatically re-evaluates answers, rewrites low-confidence queries, and falls back to live web search when internal context is insufficient.
 * **Multi-LLM Provider Engine & Failover**: Seamless runtime LLM switcher supporting OpenRouter (Primary) and Groq (Automatic Fallback). If OpenRouter rate limits or network issues occur, the pipeline automatically fails over to Groq without query interruption.
+* **Confidence Score History Dashboard**: Real-time telemetry dashboard displaying confidence score trends over time, grounded validation pass rates, self-correction iteration counts, and detailed query grounding audit trails.
 * **Multi-Turn Conversation Memory**: Maintains context across follow-up queries within a session (e.g. *"What happened next?"* or *"Tell me more about that metric"*), with a dedicated session reset control.
+* **Temporal Timeline Slider**: A dedicated "Timeline" tab in the frontend displaying chronological events extracted from documents across quarters and date attributes, with entity type filtering and deep event inspection.
+* **Executive PDF & Word Report Exporter**: One-click generation of executive briefing reports containing synthesized RAG findings, confidence metrics, citation audit tables, and self-correction rewrite history exported in PDF (`.pdf`), Word (`.docx`), or Markdown (`.md`) formats.
 * **Interactive Knowledge Graph Visualizer**: A dedicated "Knowledge Graph" view in the frontend built with pure HTML Canvas & a custom force simulation. Click any entity node (Company, Person, Product, Event, Metric) to inspect its connections and temporal relationship properties in real-time.
 
 ---
@@ -126,8 +129,10 @@ Once the API is running, you can access:
 * **`POST /api/query`**: Execute a query through the self-correcting RAG pipeline (accepts custom parameter `force_fallback: bool`).
 * **`GET /api/health`**: Inspect server status, Neo4j connectivity, Chroma document ingest counts, and active LLM provider.
 * **`GET /api/history`**: Get a list of execution events from the local JSONL query log.
+* **`GET /api/analytics/confidence`**: Get aggregated confidence score analytics, grounding pass rate, and recent telemetry history.
 * **`DELETE /api/chat/session/{session_id}`**: Clear multi-turn conversation memory for a specific chat session.
 * **`GET /api/graph`**: Returns all Neo4j entity nodes and relationships for the interactive knowledge graph visualizer.
+* **`GET /api/timeline`**: Returns chronological temporal events extracted from Neo4j for the timeline visualizer.
 * **`GET /api/providers`**: List all configured LLM providers and their active/configured status.
 * **`POST /api/providers/switch`**: Switch the active primary LLM provider at runtime without restarting the server.
 

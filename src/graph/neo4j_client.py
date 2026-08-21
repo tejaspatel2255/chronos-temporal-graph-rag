@@ -126,8 +126,32 @@ class Neo4jGraphStore:
                         "target": target,
                         "rel_type": record["rel_type"] or "RELATED_TO",
                         "date": record["date"],
-                        "quarter": record["quarter"]
-                    })
-
         return {"nodes": nodes, "links": links}
+
+    def get_temporal_events(self):
+        """Retrieves all temporal entity events and dated relationships ordered chronologically."""
+        query = (
+            "MATCH (a:Entity)-[r]->(b:Entity) "
+            "WHERE r.date IS NOT NULL OR r.quarter IS NOT NULL "
+            "RETURN a.name AS source, a.type AS source_type, b.name AS target, b.type AS target_type, "
+            "type(r) AS rel_type, r.date AS date, r.quarter AS quarter, r.description AS description "
+            "ORDER BY coalesce(r.date, r.quarter) ASC"
+        )
+        events = []
+        with self.driver.session() as session:
+            result = session.run(query)
+            for record in result:
+                date_str = record["date"] or record["quarter"] or "Undated"
+                events.append({
+                    "source": record["source"],
+                    "source_type": record["source_type"] or "Entity",
+                    "target": record["target"],
+                    "target_type": record["target_type"] or "Entity",
+                    "rel_type": record["rel_type"] or "RELATED_TO",
+                    "date": date_str,
+                    "quarter": record["quarter"],
+                    "description": record["description"] or f"{record['source']} {record['rel_type'].replace('_', ' ').lower()} {record['target']}"
+                })
+        return events
+
 

@@ -173,6 +173,51 @@ async def get_query_history(limit: int = 10):
         print(f"[ERROR] Failed to read query history: {e}")
         return []
 
+@app.get("/api/analytics/confidence")
+async def get_confidence_analytics():
+    """Returns confidence score trends, averages, validation ratios, and retry distribution."""
+    if not os.path.exists(LOG_FILE_PATH):
+        return {
+            "total_queries": 0,
+            "average_confidence": 0,
+            "validation_rate": 0,
+            "average_retries": 0,
+            "history": []
+        }
+
+    entries = []
+    try:
+        with open(LOG_FILE_PATH, "r", encoding="utf-8") as f:
+            for line in f:
+                if line.strip():
+                    entries.append(json.loads(line.strip()))
+
+        if not entries:
+            return {
+                "total_queries": 0,
+                "average_confidence": 0,
+                "validation_rate": 0,
+                "average_retries": 0,
+                "history": []
+            }
+
+        total = len(entries)
+        avg_conf = sum(e.get("confidence_score", 0) for e in entries) / total
+        valid_count = sum(1 for e in entries if e.get("is_valid", False))
+        avg_retries = sum(e.get("retries", 0) for e in entries) / total
+
+        return {
+            "total_queries": total,
+            "average_confidence": round(avg_conf, 1),
+            "validation_rate": round((valid_count / total) * 100, 1),
+            "average_retries": round(avg_retries, 2),
+            "history": entries[-30:]  # Last 30 queries for trend chart
+        }
+    except Exception as e:
+        print(f"[ERROR] Analytics aggregation failed: {e}")
+        return {"error": str(e)}
+
+
 @app.post("/api/ingest", response_model=IngestResponse)
 async def upload_and_ingest_document(file: UploadFile = File(...)):
     """
@@ -228,5 +273,20 @@ async def get_knowledge_graph(limit: int = 150):
     except Exception as e:
         print(f"[WARNING] Graph data fetch failed: {e}")
         return {"nodes": [], "links": [], "error": str(e)}
+
+@app.get("/api/timeline")
+async def get_timeline_events():
+    """Returns chronological temporal events extracted from Neo4j for the timeline visualizer."""
+    try:
+        from src.graph.neo4j_client import Neo4jGraphStore
+        store = Neo4jGraphStore()
+        events = store.get_temporal_events()
+        store.close()
+        return {"events": events}
+    except Exception as e:
+        print(f"[WARNING] Timeline fetch failed: {e}")
+        return {"events": [], "error": str(e)}
+
+
 
 
