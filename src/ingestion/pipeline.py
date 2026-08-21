@@ -17,33 +17,47 @@ def _safe_isoformat(timestamp: float) -> str:
     except Exception:
         return datetime.utcnow().isoformat()
 
-def ingest_file(file_path: str) -> Dict[str, Any]:
+def ingest_file(file_path: str, progress_callback=None) -> Dict[str, Any]:
     """
     Ingests a single file end-to-end into ChromaDB vector store
     and extracts graph entities into Neo4j if reachable.
+    Optionally reports stage updates to progress_callback.
     """
+    def _notify(stage: str, progress: int, details: str = ""):
+        if progress_callback:
+            try:
+                progress_callback(stage, progress, details)
+            except Exception:
+                pass
+
     path = Path(file_path).resolve()
     if not path.exists():
         raise FileNotFoundError(f"File not found: {file_path}")
 
     # 1. Load document
+    _notify("loading", 15, "Reading document structure and content...")
     loader = DocumentLoader()
     doc = loader.load_file(str(path))
 
     # 2. Chunk document
+    _notify("chunking", 35, "Splitting document into semantic chunks...")
     chunker = TextChunker()
     chunks = chunker.split_documents([doc])
 
     # 3. Embed chunks
+    _notify("embedding", 55, f"Generating vector embeddings for {len(chunks)} chunks...")
     embedder = Embedder()
     chunk_texts = [c.page_content for c in chunks]
     embeddings = embedder.embed_batch(chunk_texts)
 
     # 4. Store in Chroma Vector Store
+    _notify("indexing", 75, "Storing chunks and embeddings into ChromaDB index...")
     vector_store = ChromaVectorStore()
     vector_store.add_chunks(chunks, embeddings)
 
-    # 5. Populate Neo4j Graph Entities (Graceful Fallback if Neo4j unavailable)
+    # 5. Populate Neo4j Graph Entities
+    _notify("extracting_graph", 90, "Extracting entity nodes and temporal relationships into Neo4j...")
+
     entities_created = 0
     relationships_created = 0
     neo4j_status = "offline"
@@ -147,6 +161,7 @@ def ingest_file(file_path: str) -> Dict[str, Any]:
     except Exception as e:
         print(f"[WARNING] Graph entity extraction skipped or failed: {e}")
 
+    _notify("completed", 100, "Ingestion and knowledge graph extraction complete.")
     stat = path.stat()
     return {
         "doc_id": doc.metadata.get("doc_id", "unknown"),

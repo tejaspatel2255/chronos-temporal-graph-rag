@@ -13,6 +13,7 @@ Project Chronos is a self-correcting, temporal-aware GraphRAG (Graph Retrieval-A
 * **Knowledge Graph Construction**: Populates a local Neo4j database using transactional Cypher queries, linking entities together with temporal attributes (`date`, `quarter`) and anchoring them to document nodes via `MENTIONED_IN` relationships.
 * **Self-Correcting LangGraph State Machine**: Grounded validation loop that automatically re-evaluates answers, rewrites low-confidence queries, and falls back to live web search when internal context is insufficient.
 * **Multi-LLM Provider Engine & Failover**: Seamless runtime LLM switcher supporting OpenRouter (Primary) and Groq (Automatic Fallback). If OpenRouter rate limits or network issues occur, the pipeline automatically fails over to Groq without query interruption.
+* **Live Ingestion Progress Telemetry**: Real-time progress bar feedback during document uploads tracking each pipeline stage (document parsing → text chunking → vector embedding → ChromaDB indexing → Neo4j entity graph extraction).
 * **Confidence Score History Dashboard**: Real-time telemetry dashboard displaying confidence score trends over time, grounded validation pass rates, self-correction iteration counts, and detailed query grounding audit trails.
 * **Multi-Turn Conversation Memory**: Maintains context across follow-up queries within a session (e.g. *"What happened next?"* or *"Tell me more about that metric"*), with a dedicated session reset control.
 * **Temporal Timeline Slider**: A dedicated "Timeline" tab in the frontend displaying chronological events extracted from documents across quarters and date attributes, with entity type filtering and deep event inspection.
@@ -124,8 +125,8 @@ Once the API is running, you can access:
 * **ReDoc Alternative Docs**: [http://localhost:8000/redoc](http://localhost:8000/redoc)
 
 #### Key API Endpoints
-* **`POST /api/ingest`**: Upload document (`.pdf`, `.docx`, `.xlsx`, `.csv`, `.txt`, `.md`) to trigger vector embedding and graph entity extraction.
-* **`GET /api/documents`**: Fetch metadata and status cards for all ingested documents.
+* **`POST /api/ingest`**: Upload and process documents into vector store and graph database with live progress updates.
+* **`GET /api/ingest/progress`**: Stream or poll live progress telemetry during active document ingestion pipelines.
 * **`POST /api/query`**: Execute a query through the self-correcting RAG pipeline (accepts custom parameter `force_fallback: bool`).
 * **`GET /api/health`**: Inspect server status, Neo4j connectivity, Chroma document ingest counts, and active LLM provider.
 * **`GET /api/history`**: Get a list of execution events from the local JSONL query log.

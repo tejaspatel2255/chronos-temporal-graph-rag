@@ -218,11 +218,19 @@ async def get_confidence_analytics():
         return {"error": str(e)}
 
 
+# In-memory store for live ingestion progress telemetry
+INGESTION_PROGRESS: dict[str, dict] = {}
+
+@app.get("/api/ingest/progress")
+async def get_ingestion_progress():
+    """Returns the current real-time status of document ingestion operations."""
+    return INGESTION_PROGRESS
+
 @app.post("/api/ingest", response_model=IngestResponse)
 async def upload_and_ingest_document(file: UploadFile = File(...)):
     """
-    Uploads a document file (.pdf, .txt, .md), saves it to data/documents/,
-    and executes vector embedding & knowledge graph extraction.
+    Uploads a document file (.pdf, .txt, .md, .docx, .xlsx, .csv), saves it to data/documents/,
+    and executes vector embedding & knowledge graph extraction with progress telemetry.
     """
     allowed_exts = {".pdf", ".txt", ".md", ".docx", ".xlsx", ".xls", ".csv"}
     filename = file.filename or "uploaded_doc.txt"
@@ -237,20 +245,47 @@ async def upload_and_ingest_document(file: UploadFile = File(...)):
     DOCUMENTS_DIR.mkdir(parents=True, exist_ok=True)
     target_path = DOCUMENTS_DIR / filename
 
+    # Initialize progress telemetry for this file
+    INGESTION_PROGRESS[filename] = {
+        "filename": filename,
+        "stage": "uploading",
+        "progress": 5,
+        "details": "Saving uploaded document to disk...",
+        "status": "in_progress"
+    }
+
+    def _update_progress(stage: str, progress: int, details: str = ""):
+        INGESTION_PROGRESS[filename] = {
+            "filename": filename,
+            "stage": stage,
+            "progress": progress,
+            "details": details,
+            "status": "completed" if progress == 100 else "in_progress"
+        }
+
     try:
         content = await file.read()
         with open(target_path, "wb") as f:
             f.write(content)
             
-        ingest_result = ingest_file(str(target_path))
+        ingest_result = ingest_file(str(target_path), progress_callback=_update_progress)
+        _update_progress("completed", 100, "Successfully indexed in Vector & Knowledge Graph databases.")
         return ingest_result
     except Exception as e:
         import traceback
         traceback.print_exc()
+        INGESTION_PROGRESS[filename] = {
+            "filename": filename,
+            "stage": "error",
+            "progress": 0,
+            "details": f"Error: {str(e)}",
+            "status": "failed"
+        }
         raise HTTPException(
             status_code=500,
             detail=f"Document ingestion failed: {str(e)}"
         )
+
 
 @app.get("/api/documents", response_model=list[DocumentMetadata])
 async def list_documents():

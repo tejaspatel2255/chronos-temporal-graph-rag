@@ -148,6 +148,13 @@ export default function App() {
   const loadingIntervalRef = useRef<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
+  const [ingestionProgress, setIngestionProgress] = useState<{
+    filename: string;
+    stage: string;
+    progress: number;
+    details: string;
+  } | null>(null);
+
   const [sessionId] = useState<string>(() => 'session_' + Math.random().toString(36).substring(2, 9));
   const [chatTurnCount, setChatTurnCount] = useState<number>(0);
 
@@ -269,6 +276,27 @@ export default function App() {
 
     setIsUploading(true);
     setUploadStatus(`Uploading & ingesting ${file.name}...`);
+    setIngestionProgress({
+      filename: file.name,
+      stage: 'uploading',
+      progress: 10,
+      details: 'Uploading document to server...'
+    });
+
+    // Live progress polling timer
+    const progressTimer = setInterval(async () => {
+      try {
+        const pRes = await fetch(`${API_BASE_URL}/api/ingest/progress`);
+        if (pRes.ok) {
+          const pData = await pRes.json();
+          if (pData[file.name]) {
+            setIngestionProgress(pData[file.name]);
+          }
+        }
+      } catch (e) {
+        // Silent catch for telemetry polling
+      }
+    }, 1000);
 
     try {
       const formData = new FormData();
@@ -285,14 +313,14 @@ export default function App() {
       }
 
       const data = await res.json();
-      setUploadStatus(`✓ Ingested ${data.filename} (${data.chunks_count} chunks)`);
+      clearInterval(progressTimer);
+      setIngestionProgress(null);
+      setUploadStatus(`✓ Ingested ${data.filename} (${data.chunks_count} chunks, ${data.entities_created || 0} entities)`);
       fetchDocuments();
       checkHealth();
-
-      setTimeout(() => {
-        setUploadStatus(null);
-      }, 5000);
     } catch (err: any) {
+      clearInterval(progressTimer);
+      setIngestionProgress(null);
       setUploadStatus(`❌ Ingestion Error: ${err.message}`);
     } finally {
       setIsUploading(false);
@@ -515,7 +543,31 @@ export default function App() {
                   )}
                 </button>
 
-                {uploadStatus && (
+                {ingestionProgress && (
+                  <div className="mt-3 p-3 bg-slate-950 border border-indigo-500/30 rounded-xl space-y-2">
+                    <div className="flex items-center justify-between text-[11px]">
+                      <span className="font-bold text-indigo-400 capitalize flex items-center space-x-1.5">
+                        <RefreshCw className="w-3 h-3 animate-spin text-indigo-400" />
+                        <span>{ingestionProgress.stage.replace('_', ' ')}</span>
+                      </span>
+                      <span className="font-mono font-bold text-slate-200">{ingestionProgress.progress}%</span>
+                    </div>
+
+                    {/* Progress Bar Container */}
+                    <div className="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                      <div
+                        className="bg-gradient-to-r from-indigo-500 to-sky-400 h-full rounded-full transition-all duration-300"
+                        style={{ width: `${Math.max(ingestionProgress.progress, 8)}%` }}
+                      />
+                    </div>
+
+                    <p className="text-[10px] text-slate-400 leading-tight">
+                      {ingestionProgress.details}
+                    </p>
+                  </div>
+                )}
+
+                {uploadStatus && !ingestionProgress && (
                   <div className={`mt-2 p-2 rounded text-[11px] font-mono leading-tight ${
                     uploadStatus.startsWith('✓') 
                       ? 'bg-emerald-500/10 text-emerald-300 border border-emerald-500/20' 
