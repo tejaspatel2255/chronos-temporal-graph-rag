@@ -26,7 +26,8 @@ import {
   FileCheck,
   Folder,
   Printer,
-  FileDown
+  FileDown,
+  Tag
 } from 'lucide-react';
 import { downloadMarkdownReport, exportPDFReport } from './utils/reportExporter';
 import { exportWordDocxReport } from './utils/docxExporter';
@@ -91,6 +92,7 @@ interface DocumentMetadata {
   chunks_count: number;
   created_at: string;
   status: string;
+  tags?: string[];
 }
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
@@ -155,6 +157,12 @@ export default function App() {
     progress: number;
     details: string;
   } | null>(null);
+
+  // Document Tagging & Smart Filter Search state
+  const [docSearchQuery, setDocSearchQuery] = useState<string>('');
+  const [selectedTagFilter, setSelectedTagFilter] = useState<string | null>(null);
+  const [editingTagDoc, setEditingTagDoc] = useState<string | null>(null);
+  const [newTagInput, setNewTagInput] = useState<string>('');
 
   const [sessionId] = useState<string>(() => 'session_' + Math.random().toString(36).substring(2, 9));
   const [chatTurnCount, setChatTurnCount] = useState<number>(0);
@@ -269,6 +277,45 @@ export default function App() {
       if (loadingIntervalRef.current) clearInterval(loadingIntervalRef.current);
     };
   }, [isLoading]);
+  // Tag Management API Call
+  const handleAddTag = async (filename: string, tagToAdd: string) => {
+    if (!tagToAdd.trim()) return;
+    const currentDoc = documents.find(d => d.filename === filename);
+    const existingTags = currentDoc?.tags || [];
+    if (existingTags.includes(tagToAdd.trim().toLowerCase())) return;
+
+    const updatedTags = [...existingTags, tagToAdd.trim().toLowerCase()];
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/documents/tags`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ filename, tags: updatedTags })
+      });
+      if (res.ok) {
+        fetchDocuments();
+        setNewTagInput('');
+      }
+    } catch (e) {
+      console.error("Failed to add tag", e);
+    }
+  };
+
+  const handleRemoveTag = async (filename: string, tagToRemove: string) => {
+    const currentDoc = documents.find(d => d.filename === filename);
+    const updatedTags = (currentDoc?.tags || []).filter(t => t !== tagToRemove);
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/documents/tags`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ filename, tags: updatedTags })
+      });
+      if (res.ok) {
+        fetchDocuments();
+      }
+    } catch (e) {
+      console.error("Failed to remove tag", e);
+    }
+  };
 
   // Handle Document Upload
   const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
@@ -581,6 +628,61 @@ export default function App() {
                 )}
               </div>
 
+              {/* Document Smart Search & Tag Filter Bar */}
+              <div className="mb-3 space-y-2">
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={docSearchQuery}
+                    onChange={(e) => setDocSearchQuery(e.target.value)}
+                    placeholder="Search docs or tags..."
+                    className="w-full pl-8 pr-3 py-1.5 bg-slate-950/80 border border-slate-800 rounded-lg text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-colors"
+                  />
+                  <Search className="w-3.5 h-3.5 text-slate-500 absolute left-2.5 top-2.5" />
+                  {docSearchQuery && (
+                    <button
+                      onClick={() => setDocSearchQuery('')}
+                      className="absolute right-2.5 top-2 text-xs text-slate-500 hover:text-slate-300"
+                    >
+                      ×
+                    </button>
+                  )}
+                </div>
+
+                {/* Available Tag Badges Filter */}
+                {Array.from(new Set(documents.flatMap(d => d.tags || []))).length > 0 && (
+                  <div className="flex flex-wrap gap-1 items-center pt-1">
+                    <span className="text-[10px] text-slate-500 font-semibold mr-1 flex items-center">
+                      <Tag className="w-2.5 h-2.5 mr-0.5" /> Filter:
+                    </span>
+                    {selectedTagFilter && (
+                      <button
+                        onClick={() => setSelectedTagFilter(null)}
+                        className="px-1.5 py-0.5 rounded text-[10px] bg-slate-800 text-slate-400 hover:bg-slate-700"
+                      >
+                        All
+                      </button>
+                    )}
+                    {Array.from(new Set(documents.flatMap(d => d.tags || []))).map((tag, tIdx) => {
+                      const isActive = selectedTagFilter === tag;
+                      return (
+                        <button
+                          key={tIdx}
+                          onClick={() => setSelectedTagFilter(isActive ? null : tag)}
+                          className={`px-2 py-0.5 rounded text-[10px] font-medium transition-all ${
+                            isActive
+                              ? 'bg-indigo-600 text-white shadow-sm'
+                              : 'bg-slate-900 hover:bg-slate-800 text-indigo-300 border border-indigo-500/30'
+                          }`}
+                        >
+                          #{tag}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
               {/* Documents List */}
               <div className="flex-1 overflow-y-auto pb-4 space-y-2">
                 {documents.length === 0 ? (
@@ -590,57 +692,131 @@ export default function App() {
                     <p className="text-[10px] text-slate-600">Click upload above to add documents.</p>
                   </div>
                 ) : (
-                  documents.map((doc, idx) => {
-                    const isPdf = doc.filename.endsWith('.pdf');
-                    const isMd = doc.filename.endsWith('.md');
-                    const isXls = doc.filename.endsWith('.xlsx') || doc.filename.endsWith('.xls') || doc.filename.endsWith('.csv');
-                    const isDocx = doc.filename.endsWith('.docx');
-                    return (
-                      <div
-                        key={idx}
-                        className="p-3 rounded-lg bg-slate-950/40 border border-slate-800/80 hover:border-indigo-500/40 transition-all flex flex-col space-y-2 group"
-                      >
-                        <div className="flex items-start space-x-2.5">
-                          <div className={`p-1.5 rounded shrink-0 ${
-                            isPdf 
-                              ? 'bg-rose-500/10 text-rose-400' 
-                              : isXls
-                              ? 'bg-emerald-500/10 text-emerald-400'
-                              : isDocx
-                              ? 'bg-indigo-500/10 text-indigo-400'
-                              : isMd 
-                              ? 'bg-sky-500/10 text-sky-400' 
-                              : 'bg-slate-500/10 text-slate-400'
-                          }`}>
-                            <FileText className="w-4 h-4" />
-                          </div>
-                          <div className="flex-1 overflow-hidden">
-                            <h4 className="text-xs font-semibold text-slate-200 group-hover:text-indigo-400 transition-colors truncate" title={doc.filename}>
-                              {doc.filename}
-                            </h4>
-                            <span className="text-[10px] text-slate-500 block">
-                              {formatBytes(doc.file_size_bytes)}
-                            </span>
-                          </div>
-                        </div>
+                  documents
+                    .filter(doc => {
+                      const matchesSearch = docSearchQuery === '' || 
+                        doc.filename.toLowerCase().includes(docSearchQuery.toLowerCase()) ||
+                        (doc.tags && doc.tags.some(t => t.toLowerCase().includes(docSearchQuery.toLowerCase())));
+                      const matchesTag = !selectedTagFilter || (doc.tags && doc.tags.includes(selectedTagFilter));
+                      return matchesSearch && matchesTag;
+                    })
+                    .map((doc, idx) => {
+                      const isPdf = doc.filename.endsWith('.pdf');
+                      const isMd = doc.filename.endsWith('.md');
+                      const isXls = doc.filename.endsWith('.xlsx') || doc.filename.endsWith('.xls') || doc.filename.endsWith('.csv');
+                      const isDocx = doc.filename.endsWith('.docx');
+                      const isEditing = editingTagDoc === doc.filename;
 
-                        <div className="flex items-center justify-between pt-1 border-t border-slate-800/40 text-[10px] text-slate-400">
-                          <span className="flex items-center text-slate-500">
-                            <Clock className="w-2.5 h-2.5 mr-1" />
-                            {new Date(doc.created_at).toLocaleDateString([], { month: 'short', day: 'numeric' })}
-                          </span>
-                          <div className="flex items-center space-x-1.5">
-                            <span className="px-1.5 py-0.5 rounded bg-indigo-500/10 text-indigo-300 font-semibold border border-indigo-500/20">
-                              {doc.chunks_count} {doc.chunks_count === 1 ? 'chunk' : 'chunks'}
+                      return (
+                        <div
+                          key={idx}
+                          className="p-3 rounded-lg bg-slate-950/40 border border-slate-800/80 hover:border-indigo-500/40 transition-all flex flex-col space-y-2 group"
+                        >
+                          <div className="flex items-start space-x-2.5">
+                            <div className={`p-1.5 rounded shrink-0 ${
+                              isPdf 
+                                ? 'bg-rose-500/10 text-rose-400' 
+                                : isXls
+                                ? 'bg-emerald-500/10 text-emerald-400'
+                                : isDocx
+                                ? 'bg-indigo-500/10 text-indigo-400'
+                                : isMd 
+                                ? 'bg-sky-500/10 text-sky-400' 
+                                : 'bg-slate-500/10 text-slate-400'
+                            }`}>
+                              <FileText className="w-4 h-4" />
+                            </div>
+                            <div className="flex-1 overflow-hidden">
+                              <h4 className="text-xs font-semibold text-slate-200 group-hover:text-indigo-400 transition-colors truncate" title={doc.filename}>
+                                {doc.filename}
+                              </h4>
+                              <span className="text-[10px] text-slate-500 block">
+                                {formatBytes(doc.file_size_bytes)}
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Tags Display & Editor */}
+                          <div className="flex flex-wrap gap-1 items-center pt-1">
+                            {doc.tags && doc.tags.map((tag, tagIdx) => (
+                              <span
+                                key={tagIdx}
+                                className="px-1.5 py-0.5 rounded text-[9px] font-mono bg-indigo-500/15 text-indigo-300 border border-indigo-500/30 flex items-center space-x-1"
+                              >
+                                <span>#{tag}</span>
+                                <button
+                                  onClick={() => handleRemoveTag(doc.filename, tag)}
+                                  className="hover:text-rose-400 ml-0.5"
+                                  title="Remove tag"
+                                >
+                                  ×
+                                </button>
+                              </span>
+                            ))}
+
+                            {isEditing ? (
+                              <div className="flex items-center space-x-1 mt-1 w-full">
+                                <input
+                                  type="text"
+                                  value={newTagInput}
+                                  onChange={(e) => setNewTagInput(e.target.value)}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                      handleAddTag(doc.filename, newTagInput);
+                                    }
+                                  }}
+                                  placeholder="Tag name + Enter"
+                                  className="flex-1 px-1.5 py-0.5 text-[10px] bg-slate-900 border border-indigo-500/50 rounded text-slate-200 focus:outline-none"
+                                  autoFocus
+                                />
+                                <button
+                                  onClick={() => {
+                                    handleAddTag(doc.filename, newTagInput);
+                                    setEditingTagDoc(null);
+                                  }}
+                                  className="px-1.5 py-0.5 bg-indigo-600 text-white rounded text-[10px]"
+                                >
+                                  Add
+                                </button>
+                                <button
+                                  onClick={() => setEditingTagDoc(null)}
+                                  className="text-[10px] text-slate-400 hover:text-slate-200 px-1"
+                                >
+                                  Cancel
+                                </button>
+                              </div>
+                            ) : (
+                              <button
+                                onClick={() => {
+                                  setEditingTagDoc(doc.filename);
+                                  setNewTagInput('');
+                                }}
+                                className="px-1.5 py-0.5 rounded text-[9px] bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-indigo-300 border border-slate-800 transition-colors flex items-center space-x-0.5"
+                                title="Add tag"
+                              >
+                                <Tag className="w-2.5 h-2.5 mr-0.5" />
+                                <span>+ Tag</span>
+                              </button>
+                            )}
+                          </div>
+
+                          <div className="flex items-center justify-between pt-1 border-t border-slate-800/40 text-[10px] text-slate-400">
+                            <span className="flex items-center text-slate-500">
+                              <Clock className="w-2.5 h-2.5 mr-1" />
+                              {new Date(doc.created_at).toLocaleDateString([], { month: 'short', day: 'numeric' })}
                             </span>
-                            <span className="px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 font-semibold border border-emerald-500/20 flex items-center">
-                              <FileCheck className="w-2.5 h-2.5 mr-0.5" /> Ingested
-                            </span>
+                            <div className="flex items-center space-x-1.5">
+                              <span className="px-1.5 py-0.5 rounded bg-indigo-500/10 text-indigo-300 font-semibold border border-indigo-500/20">
+                                {doc.chunks_count} {doc.chunks_count === 1 ? 'chunk' : 'chunks'}
+                              </span>
+                              <span className="px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 font-semibold border border-emerald-500/20 flex items-center">
+                                <FileCheck className="w-2.5 h-2.5 mr-0.5" /> Ingested
+                              </span>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    );
-                  })
+                      );
+                    })
                 )}
               </div>
             </div>

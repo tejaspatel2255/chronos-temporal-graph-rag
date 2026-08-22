@@ -176,10 +176,40 @@ def ingest_file(file_path: str, progress_callback=None) -> Dict[str, Any]:
         "status": "processed"
     }
 
+import json
+
+TAGS_STORE_PATH = Path(__file__).parent.parent.parent / "data" / "document_tags.json"
+
+def get_document_tags() -> Dict[str, List[str]]:
+    """Loads document tags from JSON storage."""
+    if not TAGS_STORE_PATH.exists():
+        return {}
+    try:
+        with open(TAGS_STORE_PATH, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception as e:
+        print(f"[WARNING] Failed to load document tags: {e}")
+        return {}
+
+def save_document_tags(filename: str, tags: List[str]) -> List[str]:
+    """Updates and saves tags for a specific document filename."""
+    TAGS_STORE_PATH.parent.mkdir(parents=True, exist_ok=True)
+    all_tags = get_document_tags()
+    # Normalize tags: clean whitespace, lowercase, unique
+    clean_tags = list(dict.fromkeys([t.strip().lower() for t in tags if t.strip()]))
+    all_tags[filename] = clean_tags
+    try:
+        with open(TAGS_STORE_PATH, "w", encoding="utf-8") as f:
+            json.dump(all_tags, f, indent=2)
+    except Exception as e:
+        print(f"[ERROR] Failed to save document tags: {e}")
+    return clean_tags
+
 def get_all_documents() -> List[Dict[str, Any]]:
     """Retrieves metadata of all documents currently saved in data/documents."""
     DOCUMENTS_DIR.mkdir(parents=True, exist_ok=True)
-    supported_extensions = {".pdf", ".txt", ".md"}
+    supported_extensions = {".pdf", ".txt", ".md", ".docx", ".xlsx", ".xls", ".csv"}
+    doc_tags_map = get_document_tags()
 
     # Retrieve vector store chunk counts grouped by filename
     chunk_counts = {}
@@ -202,6 +232,7 @@ def get_all_documents() -> List[Dict[str, Any]]:
                 stat = file.stat()
                 mtime_str = _safe_isoformat(stat.st_mtime)
                 c_count = chunk_counts.get(file.name, 0)
+                file_tags = doc_tags_map.get(file.name, [])
                 docs_list.append({
                     "doc_id": f"doc_{file.name}",
                     "filename": file.name,
@@ -209,7 +240,8 @@ def get_all_documents() -> List[Dict[str, Any]]:
                     "file_size_bytes": stat.st_size,
                     "chunks_count": c_count,
                     "created_at": mtime_str,
-                    "status": "processed" if c_count > 0 else "pending"
+                    "status": "processed" if c_count > 0 else "pending",
+                    "tags": file_tags
                 })
             except Exception as e:
                 print(f"[ERROR] Failed to inspect document file {file}: {e}")
@@ -217,3 +249,4 @@ def get_all_documents() -> List[Dict[str, Any]]:
     # Sort by created_at descending (newest first), safely handling any missing timestamps
     docs_list.sort(key=lambda x: x.get("created_at") or "", reverse=True)
     return docs_list
+

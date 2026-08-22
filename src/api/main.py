@@ -287,6 +287,9 @@ async def upload_and_ingest_document(file: UploadFile = File(...)):
         )
 
 
+from src.ingestion.pipeline import ingest_file, get_all_documents, save_document_tags, DOCUMENTS_DIR
+from src.api.schemas import QueryRequest, QueryResponse, HealthResponse, DocumentMetadata, IngestResponse, TagUpdateRequest
+
 @app.get("/api/documents", response_model=list[DocumentMetadata])
 async def list_documents():
     """Returns status metadata cards for all uploaded/ingested documents."""
@@ -295,6 +298,17 @@ async def list_documents():
     except Exception as e:
         print(f"[ERROR] Failed to fetch documents list: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.put("/api/documents/tags")
+async def update_document_tags(payload: TagUpdateRequest):
+    """Updates custom tags for a specific ingested document."""
+    try:
+        updated = save_document_tags(payload.filename, payload.tags)
+        return {"filename": payload.filename, "tags": updated}
+    except Exception as e:
+        print(f"[ERROR] Failed to update document tags: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 
 @app.get("/api/graph")
 async def get_knowledge_graph(limit: int = 150):

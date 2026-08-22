@@ -60,6 +60,12 @@ class DocumentMetadata(BaseModel):
     chunks_count: int
     created_at: str
     status: str
+    tags: List[str] = Field(default_factory=list)
+
+class TagUpdateRequest(BaseModel):
+    filename: str
+    tags: List[str]
+
 
 class IngestResponse(BaseModel):
     doc_id: str
