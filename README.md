@@ -13,6 +13,7 @@ Project Chronos is a self-correcting, temporal-aware GraphRAG (Graph Retrieval-A
 * **Knowledge Graph Construction**: Populates a local Neo4j database using transactional Cypher queries, linking entities together with temporal attributes (`date`, `quarter`) and anchoring them to document nodes via `MENTIONED_IN` relationships.
 * **Self-Correcting LangGraph State Machine**: Grounded validation loop that automatically re-evaluates answers, rewrites low-confidence queries, and falls back to live web search when internal context is insufficient.
 * **Multi-LLM Provider Engine & Failover**: Seamless runtime LLM switcher supporting OpenRouter (Primary) and Groq (Automatic Fallback). If OpenRouter rate limits or network issues occur, the pipeline automatically fails over to Groq without query interruption.
+* **Query Caching with Automatic Invalidation**: High-performance in-memory LRU query cache (`src/utils/cache.py`) providing sub-10ms response times for repeated queries. Automatically invalidates the entire cache upon new document upload (`POST /api/ingest`), ensuring queries never serve stale context. Includes manual flush (`DELETE /api/cache`) and telemetry (`GET /api/cache/stats`).
 * **Document Tagging & Smart Search**: Real-time document filtering and instant tag management (`PUT /api/documents/tags`). Users can assign custom tags (`#finance`, `#q3-2024`, `#spec`) to ingested files, filter the knowledge base by tag pills, and perform smart search across filenames and tag metadata.
 * **Auto-Suggested Related Questions**: Dynamically generates 3 contextual follow-up questions for every RAG query answer using LLM analysis. Users can click any suggestion to instantly execute the follow-up query with full session memory continuity.
 * **Live Ingestion Progress Telemetry**: Real-time progress bar feedback during document uploads tracking each pipeline stage (document parsing → text chunking → vector embedding → ChromaDB indexing → Neo4j entity graph extraction).
@@ -131,6 +132,8 @@ Once the API is running, you can access:
 * **`GET /api/ingest/progress`**: Stream or poll live progress telemetry during active document ingestion pipelines.
 * **`PUT /api/documents/tags`**: Assign or update custom classification tags on ingested documents.
 * **`POST /api/query`**: Execute a query through the self-correcting RAG pipeline (accepts custom parameter `force_fallback: bool`).
+* **`DELETE /api/cache`**: Manually flush all cached query responses.
+* **`GET /api/cache/stats`**: Retrieve telemetry stats (active entries, capacity, TTL) for the query cache.
 * **`GET /api/health`**: Inspect server status, Neo4j connectivity, Chroma document ingest counts, and active LLM provider.
 * **`GET /api/history`**: Get a list of execution events from the local JSONL query log.
 * **`GET /api/analytics/confidence`**: Get aggregated confidence score analytics, grounding pass rate, and recent telemetry history.

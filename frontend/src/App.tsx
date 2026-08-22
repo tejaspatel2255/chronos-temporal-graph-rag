@@ -59,6 +59,8 @@ interface QueryResponse {
   context_used: ContextUsed[];
   attempts_log: AttemptLog[];
   suggested_questions?: string[];
+  cached?: boolean;
+  cache_timestamp?: number;
 }
 
 interface HealthStatus {
@@ -1261,6 +1263,14 @@ export default function App() {
                       </>
                     )}
                   </div>
+
+                  {/* Cache Hit Badge */}
+                  {result.cached && (
+                    <div className="px-3 py-1 rounded-full border border-sky-500/40 bg-sky-500/10 text-sky-300 text-xs font-semibold flex items-center shadow-sm">
+                      <RefreshCw className="w-3.5 h-3.5 mr-1.5 text-sky-400" />
+                      <span>Cache Hit (Instant)</span>
+                    </div>
+                  )}
 
                   {/* Web Fallback Run Badge */}
                   {isWebResult && (

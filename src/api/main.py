@@ -61,16 +61,28 @@ CHAT_SESSIONS: dict[str, list[dict]] = {}
 
 @app.post("/api/query", response_model=QueryResponse)
 async def query_pipeline(request: QueryRequest):
-    """Executes a user query through the LangGraph self-correcting state machine."""
+    """Executes a user query through the LangGraph self-correcting state machine with cache check."""
     try:
         session_id = request.session_id or "default"
         history = CHAT_SESSIONS.get(session_id, [])
+
+        # Check cache if no conversation history turns are present
+        from src.utils.cache import query_cache
+        if not history:
+            cached_res = query_cache.get(request.question, force_fallback=request.force_fallback, session_id=session_id)
+            if cached_res:
+                print(f"[CACHE HIT] Returning cached response for query: '{request.question}'")
+                return cached_res
 
         result = run_chronos_query(
             request.question,
             force_fallback=request.force_fallback,
             conversation_history=history
         )
+
+        # Cache result if successful and not in active multi-turn context
+        if not history and result.get("is_valid", False):
+            query_cache.set(request.question, result, force_fallback=request.force_fallback, session_id=session_id)
 
         # Append turn to session memory
         if session_id not in CHAT_SESSIONS:
@@ -89,6 +101,19 @@ async def query_pipeline(request: QueryRequest):
             status_code=500,
             detail=f"Internal Server Error occurred during query execution: {str(e)}"
         )
+
+@app.delete("/api/cache")
+async def invalidate_query_cache():
+    """Manually flushes all cached query responses."""
+    from src.utils.cache import query_cache
+    count = query_cache.invalidate_all()
+    return {"status": "success", "invalidated_count": count, "message": "Query cache flushed."}
+
+@app.get("/api/cache/stats")
+async def get_cache_stats():
+    """Returns telemetry stats for the query cache."""
+    from src.utils.cache import query_cache
+    return query_cache.get_stats()
 
 @app.delete("/api/chat/session/{session_id}")
 async def clear_chat_session(session_id: str):
@@ -270,6 +295,11 @@ async def upload_and_ingest_document(file: UploadFile = File(...)):
             
         ingest_result = ingest_file(str(target_path), progress_callback=_update_progress)
         _update_progress("completed", 100, "Successfully indexed in Vector & Knowledge Graph databases.")
+        
+        # Invalidate query cache so new documents are immediately discoverable
+        from src.utils.cache import query_cache
+        query_cache.invalidate_all()
+        
         return ingest_result
     except Exception as e:
         import traceback
