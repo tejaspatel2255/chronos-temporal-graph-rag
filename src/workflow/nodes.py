@@ -99,9 +99,15 @@ def generate_node(state: ChronosState) -> dict:
     history = state.get("conversation_history", [])
     print("[*] [LangGraph Node: Generate] Drafting response using context and conversation history...")
     draft = generate_draft(query, context, llm_client, conversation_history=history)
+    
+    # Generate auto-suggested follow-up questions
+    from src.generation.generator import generate_suggested_questions
+    suggestions = generate_suggested_questions(query, draft["answer"], llm_client)
+
     return {
         "draft_answer": draft["answer"],
         "citations": draft["raw_citations"],
+        "suggested_questions": suggestions,
         "context_used": [
             {
                 "id": c.get("id"),

@@ -24,6 +24,7 @@ export interface QueryResponse {
   citations: Citation[];
   context_used: ContextUsed[];
   attempts_log: AttemptLog[];
+  suggested_questions?: string[];
 }
 
 export function generateReportMarkdown(question: string, result: QueryResponse): string {

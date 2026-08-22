@@ -7,5 +7,7 @@ def format_chronos_output(state: dict) -> dict:
         "retries": state.get("retry_count", 0),
         "citations": state.get("citations", []),
         "context_used": state.get("context_used", []),
-        "attempts_log": state.get("attempts_log", [])
+        "attempts_log": state.get("attempts_log", []),
+        "suggested_questions": state.get("suggested_questions", [])
     }
+

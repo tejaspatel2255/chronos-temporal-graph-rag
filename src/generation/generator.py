@@ -43,3 +43,34 @@ def generate_draft(query: str, context_chunks: list[dict], llm_client, conversat
         "answer": "Failed to generate a valid answer (failed basic sanity checks after retries).",
         "raw_citations": []
     }
+
+def generate_suggested_questions(query: str, answer: str, llm_client) -> list[str]:
+    """Generates 3 auto-suggested follow-up questions using the LLM."""
+    import json
+    from src.generation.prompts import SUGGESTED_QUESTIONS_PROMPT, build_suggestions_prompt
+
+    prompt = build_suggestions_prompt(query, answer)
+    try:
+        response = llm_client.completion(
+            prompt=prompt,
+            system_prompt=SUGGESTED_QUESTIONS_PROMPT,
+            temperature=0.4
+        )
+        cleaned = response.strip()
+        if cleaned.startswith("```"):
+            cleaned = re.sub(r"^```(?:json)?\s*", "", cleaned)
+            cleaned = re.sub(r"\s*```$", "", cleaned)
+
+        questions = json.loads(cleaned)
+        if isinstance(questions, list) and len(questions) > 0:
+            return [str(q).strip() for q in questions[:3]]
+    except Exception as e:
+        print(f"[WARNING] Failed to generate suggested follow-up questions: {e}")
+
+    # Fallback contextual questions if generation fails
+    return [
+        f"What are the temporal trends related to {query[:30]}...?",
+        f"How does this impact overall strategic milestones?",
+        f"Can you summarize key risk factors associated with this topic?"
+    ]
+

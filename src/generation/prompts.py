@@ -90,3 +90,16 @@ def build_correction_prompt(original_query: str, validation_result: dict) -> str
         "Generate the rewritten query to improve retrieval:"
     )
     return prompt
+
+SUGGESTED_QUESTIONS_PROMPT = (
+    "You are an enterprise analyst AI assistant.\n"
+    "Based on the user's query and the synthesized answer provided, generate exactly 3 relevant, insightful follow-up questions that an executive or analyst might ask next.\n"
+    "Follow these rules:\n"
+    "- Questions must be concise, specific, and directly relevant to the topic discussed.\n"
+    "- Output ONLY a valid JSON array of 3 strings. Example: [\"Question 1?\", \"Question 2?\", \"Question 3?\"]\n"
+    "- Do not include markdown code fences (like ```json), prefixes, or extra commentary."
+)
+
+def build_suggestions_prompt(query: str, answer: str) -> str:
+    """Formats prompt to generate 3 follow-up questions."""
+    return f"User Query: {query}\n\nSynthesized Answer:\n{answer}\n\nGenerate 3 follow-up questions:"

@@ -33,6 +33,8 @@ class QueryResponse(BaseModel):
     citations: List[Citation]
     context_used: List[ContextUsed]
     attempts_log: List[AttemptLog]
+    suggested_questions: Optional[List[str]] = Field(default_factory=list)
+
 
 class HealthResponse(BaseModel):
     status: str

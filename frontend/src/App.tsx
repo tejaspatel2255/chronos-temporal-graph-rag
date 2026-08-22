@@ -57,6 +57,7 @@ interface QueryResponse {
   citations: Citation[];
   context_used: ContextUsed[];
   attempts_log: AttemptLog[];
+  suggested_questions?: string[];
 }
 
 interface HealthStatus {
@@ -1156,6 +1157,31 @@ export default function App() {
                   <ReactMarkdown>{result.answer}</ReactMarkdown>
                 </div>
               </div>
+
+              {/* Auto-Suggested Follow-up Questions */}
+              {result.suggested_questions && result.suggested_questions.length > 0 && (
+                <div className="bg-slate-900/80 border border-indigo-500/30 rounded-2xl p-5 shadow-xl space-y-3">
+                  <div className="flex items-center space-x-2">
+                    <HelpCircle className="w-4 h-4 text-indigo-400" />
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-slate-300">Suggested Follow-Up Questions</h4>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    {result.suggested_questions.map((sq, sIdx) => (
+                      <button
+                        key={sIdx}
+                        onClick={() => {
+                          setQuestion(sq);
+                          handleSubmit(sq, false);
+                        }}
+                        className="p-3.5 rounded-xl bg-slate-950/60 hover:bg-indigo-600/10 border border-slate-800 hover:border-indigo-500/40 text-left text-xs font-medium text-slate-300 hover:text-indigo-200 transition-all flex items-start space-x-2 group cursor-pointer"
+                      >
+                        <ArrowRight className="w-3.5 h-3.5 text-indigo-400 mt-0.5 shrink-0 group-hover:translate-x-0.5 transition-transform" />
+                        <span className="leading-snug">{sq}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Citations list */}
               <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-3">
