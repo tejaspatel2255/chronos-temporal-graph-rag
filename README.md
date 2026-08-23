@@ -17,7 +17,7 @@ Project Chronos is a self-correcting, temporal-aware GraphRAG (Graph Retrieval-A
 * **Query Caching with Automatic Invalidation**: High-performance in-memory LRU query cache (`src/utils/cache.py`) providing sub-10ms response times for repeated queries. Automatically invalidates the entire cache upon new document upload (`POST /api/ingest`), ensuring queries never serve stale context. Includes manual flush (`DELETE /api/cache`) and telemetry (`GET /api/cache/stats`).
 * **Document Tagging & Smart Search**: Real-time document filtering and instant tag management (`PUT /api/documents/tags`). Users can assign custom tags (`#finance`, `#q3-2024`, `#spec`) to ingested files, filter the knowledge base by tag pills, and perform smart search across filenames and tag metadata.
 * **Auto-Suggested Related Questions**: Dynamically generates 3 contextual follow-up questions for every RAG query answer using LLM analysis. Users can click any suggestion to instantly execute the follow-up query with full session memory continuity.
-* **Live Ingestion Progress Telemetry**: Real-time progress bar feedback during document uploads tracking each pipeline stage (document parsing → text chunking → vector embedding → ChromaDB indexing → Neo4j entity graph extraction).
+* **Docker Compose Containerized Setup**: Multi-stage production container setup (`Dockerfile.backend`, `Dockerfile.frontend`, `docker-compose.yml`) orchestrating the Python FastAPI backend, Nginx-served React Vite frontend, and persistent Neo4j Graph Database with single-command deployment (`docker compose up --build`).
 * **Confidence Score History Dashboard**: Real-time telemetry dashboard displaying confidence score trends over time, grounded validation pass rates, self-correction iteration counts, and detailed query grounding audit trails.
 * **Multi-Turn Conversation Memory**: Maintains context across follow-up queries within a session (e.g. *"What happened next?"* or *"Tell me more about that metric"*), with a dedicated session reset control.
 * **Temporal Timeline Slider**: A dedicated "Timeline" tab in the frontend displaying chronological events extracted from documents across quarters and date attributes, with entity type filtering and deep event inspection.
@@ -95,7 +95,18 @@ pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-### 4. Database Setup (Neo4j via Docker)
+### 🐳 Quick Start with Docker Compose (Recommended)
+Run the complete full-stack application (Neo4j Graph Database + FastAPI Backend + React Web UI) with a single command:
+```bash
+docker compose up -d --build
+```
+- **React Frontend**: `http://localhost:3000`
+- **FastAPI API Docs**: `http://localhost:8000/docs`
+- **Neo4j Browser UI**: `http://localhost:7474`
+
+---
+
+### 🛠️ Manual Local Development Setup
 Start the Neo4j instance in the background using Docker:
 ```bash
 docker run -d --name neo4j-chronos -p 7474:7474 -p 7687:7687 -v neo4j_data:/data -e NEO4J_AUTH=neo4j/password123 neo4j:latest
