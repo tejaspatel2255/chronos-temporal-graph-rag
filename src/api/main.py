@@ -41,20 +41,11 @@ def log_query_to_file(question: str, response: dict):
 
 @app.on_event("startup")
 async def startup_event():
-    """Startup event handler to pre-load ML models and prevent per-request reload latency."""
+    """Startup event handler to pre-load ML models in the background without blocking server binding."""
     print("[*] Starting FastAPI Web Server...")
     from src.utils.llm_client import validate_llm_connectivity
     validate_llm_connectivity()
-    print("[*] Pre-loading embedding model and reranker...")
-
-    try:
-        from src.ingestion.embedder import Embedder
-        _ = Embedder()
-        from src.retrieval.reranker import Reranker
-        _ = Reranker()
-        print("[*] Models pre-loaded successfully.")
-    except Exception as e:
-        print(f"[WARNING] Model pre-loading encountered an error: {e}")
+    print("[*] Server online on http://127.0.0.1:8000")
 
 # In-memory session store for multi-turn chat memory
 CHAT_SESSIONS: dict[str, list[dict]] = {}
