@@ -47,6 +47,12 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# Uploaded user documents (runtime uploads, not source fixtures)
+# Uploaded user documents & runtime metadata
 data/documents/*
 !data/documents/.gitkeep
+data/document_tags.json
+data/exports/*
+!data/exports/.gitkeep
+*.pdf
+*.docx
+*.xlsx
