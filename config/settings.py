@@ -20,7 +20,9 @@ class Settings(BaseSettings):
     GROQ_API_KEY: str = Field(default="")
     GROQ_MODEL: str = Field(default="llama-3.3-70b-versatile")
 
-    
+    # Security & Authentication
+    CHRONOS_API_KEY: str = Field(default="")
+
     # Graph Database Configurations
     NEO4J_URI: str = Field(default="bolt://localhost:7687")
     NEO4J_USERNAME: str = Field(default="neo4j")

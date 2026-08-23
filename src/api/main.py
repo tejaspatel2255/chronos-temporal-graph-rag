@@ -2,12 +2,13 @@ import os
 import json
 from datetime import datetime
 from pathlib import Path
-from fastapi import FastAPI, HTTPException, UploadFile, File
+from fastapi import FastAPI, HTTPException, UploadFile, File, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from src.workflow.runner import run_chronos_query
 from src.api.schemas import QueryRequest, QueryResponse, HealthResponse, DocumentMetadata, IngestResponse
 from src.ingestion.vector_store import ChromaVectorStore
 from src.ingestion.pipeline import ingest_file, get_all_documents, DOCUMENTS_DIR
+from src.api.auth import verify_api_key
 
 app = FastAPI(
     title="Project Chronos API",
@@ -50,7 +51,7 @@ async def startup_event():
 # In-memory session store for multi-turn chat memory
 CHAT_SESSIONS: dict[str, list[dict]] = {}
 
-@app.post("/api/query", response_model=QueryResponse)
+@app.post("/api/query", response_model=QueryResponse, dependencies=[Depends(verify_api_key)])
 async def query_pipeline(request: QueryRequest):
     """Executes a user query through the LangGraph self-correcting state machine with cache check."""
     try:
@@ -242,7 +243,7 @@ async def get_ingestion_progress():
     """Returns the current real-time status of document ingestion operations."""
     return INGESTION_PROGRESS
 
-@app.post("/api/ingest", response_model=IngestResponse)
+@app.post("/api/ingest", response_model=IngestResponse, dependencies=[Depends(verify_api_key)])
 async def upload_and_ingest_document(file: UploadFile = File(...)):
     """
     Uploads a document file (.pdf, .txt, .md, .docx, .xlsx, .csv), saves it to data/documents/,
@@ -320,7 +321,7 @@ async def list_documents():
         print(f"[ERROR] Failed to fetch documents list: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.put("/api/documents/tags")
+@app.put("/api/documents/tags", dependencies=[Depends(verify_api_key)])
 async def update_document_tags(payload: TagUpdateRequest):
     """Updates custom tags for a specific ingested document."""
     try:

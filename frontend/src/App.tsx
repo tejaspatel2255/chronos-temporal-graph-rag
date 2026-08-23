@@ -150,6 +150,9 @@ export default function App() {
   // Local session cache for full results
   const [sessionCache, setSessionCache] = useState<Record<string, QueryResponse>>({});
 
+  // Security API Key state
+  const [apiKey, setApiKey] = useState<string>(() => localStorage.getItem('chronos_api_key') || '');
+
   const loadingIntervalRef = useRef<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -288,9 +291,12 @@ export default function App() {
 
     const updatedTags = [...existingTags, tagToAdd.trim().toLowerCase()];
     try {
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (apiKey.trim()) headers['X-API-Key'] = apiKey.trim();
+
       const res = await fetch(`${API_BASE_URL}/api/documents/tags`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({ filename, tags: updatedTags })
       });
       if (res.ok) {
@@ -306,9 +312,12 @@ export default function App() {
     const currentDoc = documents.find(d => d.filename === filename);
     const updatedTags = (currentDoc?.tags || []).filter(t => t !== tagToRemove);
     try {
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (apiKey.trim()) headers['X-API-Key'] = apiKey.trim();
+
       const res = await fetch(`${API_BASE_URL}/api/documents/tags`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({ filename, tags: updatedTags })
       });
       if (res.ok) {
@@ -352,8 +361,12 @@ export default function App() {
       const formData = new FormData();
       formData.append('file', file);
 
+      const headers: Record<string, string> = {};
+      if (apiKey.trim()) headers['X-API-Key'] = apiKey.trim();
+
       const res = await fetch(`${API_BASE_URL}/api/ingest`, {
         method: 'POST',
+        headers,
         body: formData,
       });
 
@@ -391,11 +404,12 @@ export default function App() {
     setActiveQuestion(qText);
 
     try {
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (apiKey.trim()) headers['X-API-Key'] = apiKey.trim();
+
       const response = await fetch(`${API_BASE_URL}/api/query`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers,
         body: JSON.stringify({
           question: qText,
           force_fallback: forceWeb,
@@ -944,6 +958,38 @@ export default function App() {
                   <p className="text-[10px] leading-relaxed text-slate-400">
                     If your active primary model encounters rate limits or errors, Chronos automatically fails over to the next configured model in sequence.
                   </p>
+                </div>
+
+                {/* Security API Key Section */}
+                <div className="mt-4 pt-3 border-t border-slate-800/80 space-y-2">
+                  <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider block">Security API Key (X-API-Key)</span>
+                  <p className="text-[10px] text-slate-400 leading-tight">
+                    Required when backend enforces CHRONOS_API_KEY authentication.
+                  </p>
+                  <div className="flex space-x-1.5 pt-1">
+                    <input
+                      type="password"
+                      value={apiKey}
+                      onChange={(e) => {
+                        setApiKey(e.target.value);
+                        localStorage.setItem('chronos_api_key', e.target.value);
+                      }}
+                      placeholder="Enter X-API-Key..."
+                      className="flex-1 px-2.5 py-1.5 bg-slate-900 border border-slate-800 rounded text-xs text-slate-200 placeholder-slate-600 focus:outline-none focus:border-indigo-500"
+                    />
+                    {apiKey && (
+                      <button
+                        onClick={() => {
+                          setApiKey('');
+                          localStorage.removeItem('chronos_api_key');
+                        }}
+                        className="px-2 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200 rounded text-xs"
+                        title="Clear Key"
+                      >
+                        Clear
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
