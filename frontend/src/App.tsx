@@ -27,7 +27,8 @@ import {
   Folder,
   Printer,
   FileDown,
-  Tag
+  Tag,
+  BarChart3
 } from 'lucide-react';
 import { downloadMarkdownReport, exportPDFReport } from './utils/reportExporter';
 import { exportWordDocxReport } from './utils/docxExporter';
@@ -50,6 +51,20 @@ interface AttemptLog {
   reasoning: string;
 }
 
+interface RagasEval {
+  faithfulness: number;
+  answer_relevance: number;
+  context_precision: number;
+  context_recall: number;
+  overall_ragas_score: number;
+  verdict: string;
+  breakdown?: {
+    claims_verified: number;
+    claims_total: number;
+    eval_summary: string;
+  };
+}
+
 interface QueryResponse {
   answer: string;
   confidence_score: number;
@@ -61,6 +76,7 @@ interface QueryResponse {
   suggested_questions?: string[];
   cached?: boolean;
   cache_timestamp?: number;
+  ragas_eval?: RagasEval;
 }
 
 interface HealthStatus {
@@ -1326,6 +1342,14 @@ export default function App() {
                     </div>
                   )}
 
+                  {/* RAGAS Overall Badge */}
+                  {result.ragas_eval && (
+                    <div className="px-3 py-1 rounded-full border border-purple-500/40 bg-purple-500/10 text-purple-300 text-xs font-semibold flex items-center shadow-sm">
+                      <BarChart3 className="w-3.5 h-3.5 mr-1.5 text-purple-400" />
+                      <span>RAGAS Benchmark: {result.ragas_eval.overall_ragas_score}/100 ({result.ragas_eval.verdict})</span>
+                    </div>
+                  )}
+
                   {/* Retries count */}
                   <span className="text-xs text-slate-500 py-1 px-2 self-center bg-slate-950/40 rounded border border-slate-800">
                     {result.retries === 0 
@@ -1345,6 +1369,77 @@ export default function App() {
                   </div>
                 )}
               </div>
+
+              {/* RAGAS Quantitative Evaluation Benchmark Breakdown Panel */}
+              {result.ragas_eval && (
+                <div className="bg-slate-900/90 border border-purple-500/30 rounded-2xl p-5 shadow-xl space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <BarChart3 className="w-4 h-4 text-purple-400" />
+                      <h3 className="text-xs font-bold uppercase tracking-wider text-purple-300">RAGAS Quantitative Benchmark Metrics</h3>
+                    </div>
+                    <span className="text-[10px] font-semibold text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded border border-purple-500/20">
+                      Overall Score: {result.ragas_eval.overall_ragas_score}%
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    {/* Faithfulness */}
+                    <div className="p-3 bg-slate-950/60 rounded-xl border border-slate-800 flex flex-col space-y-1">
+                      <span className="text-[10px] font-bold text-slate-400 uppercase">Faithfulness</span>
+                      <div className="flex items-baseline justify-between">
+                        <span className="text-base font-extrabold text-emerald-400">{result.ragas_eval.faithfulness}%</span>
+                        <span className="text-[9px] text-slate-500">Zero Hallucination</span>
+                      </div>
+                      <div className="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
+                        <div className="bg-emerald-500 h-1.5 rounded-full" style={{ width: `${result.ragas_eval.faithfulness}%` }}></div>
+                      </div>
+                    </div>
+
+                    {/* Answer Relevance */}
+                    <div className="p-3 bg-slate-950/60 rounded-xl border border-slate-800 flex flex-col space-y-1">
+                      <span className="text-[10px] font-bold text-slate-400 uppercase">Answer Relevance</span>
+                      <div className="flex items-baseline justify-between">
+                        <span className="text-base font-extrabold text-indigo-400">{result.ragas_eval.answer_relevance}%</span>
+                        <span className="text-[9px] text-slate-500">Query Match</span>
+                      </div>
+                      <div className="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
+                        <div className="bg-indigo-500 h-1.5 rounded-full" style={{ width: `${result.ragas_eval.answer_relevance}%` }}></div>
+                      </div>
+                    </div>
+
+                    {/* Context Precision */}
+                    <div className="p-3 bg-slate-950/60 rounded-xl border border-slate-800 flex flex-col space-y-1">
+                      <span className="text-[10px] font-bold text-slate-400 uppercase">Context Precision</span>
+                      <div className="flex items-baseline justify-between">
+                        <span className="text-base font-extrabold text-sky-400">{result.ragas_eval.context_precision}%</span>
+                        <span className="text-[9px] text-slate-500">Signal Ratio</span>
+                      </div>
+                      <div className="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
+                        <div className="bg-sky-500 h-1.5 rounded-full" style={{ width: `${result.ragas_eval.context_precision}%` }}></div>
+                      </div>
+                    </div>
+
+                    {/* Context Recall */}
+                    <div className="p-3 bg-slate-950/60 rounded-xl border border-slate-800 flex flex-col space-y-1">
+                      <span className="text-[10px] font-bold text-slate-400 uppercase">Context Recall</span>
+                      <div className="flex items-baseline justify-between">
+                        <span className="text-base font-extrabold text-amber-400">{result.ragas_eval.context_recall}%</span>
+                        <span className="text-[9px] text-slate-500">Completeness</span>
+                      </div>
+                      <div className="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
+                        <div className="bg-amber-500 h-1.5 rounded-full" style={{ width: `${result.ragas_eval.context_recall}%` }}></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {result.ragas_eval.breakdown?.eval_summary && (
+                    <p className="text-[11px] text-slate-400 italic pt-1 border-t border-slate-800/60">
+                      "{result.ragas_eval.breakdown.eval_summary}"
+                    </p>
+                  )}
+                </div>
+              )}
 
               {/* Synthesized Answer Box */}
               <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-xl">

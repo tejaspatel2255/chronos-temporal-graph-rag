@@ -34,6 +34,7 @@ class QueryResponse(BaseModel):
     context_used: List[ContextUsed]
     attempts_log: List[AttemptLog]
     suggested_questions: Optional[List[str]] = Field(default_factory=list)
+    ragas_eval: Optional[Dict[str, Any]] = None
 
 
 class HealthResponse(BaseModel):
