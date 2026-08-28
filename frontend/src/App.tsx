@@ -30,7 +30,7 @@ import {
   Tag,
   BarChart3
 } from 'lucide-react';
-import { downloadMarkdownReport, exportPDFReport } from './utils/reportExporter';
+import { downloadMarkdownReport, exportPDFReport, exportExcelReport } from './utils/reportExporter';
 import { exportWordDocxReport } from './utils/docxExporter';
 
 interface Citation {
@@ -1467,6 +1467,15 @@ export default function App() {
                     >
                       <FileText className="w-3.5 h-3.5 text-blue-400" />
                       <span>Export Word</span>
+                    </button>
+
+                    <button
+                      onClick={() => exportExcelReport(activeQuestion || 'Enterprise RAG Query', result)}
+                      className="px-3 py-1.5 bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/40 hover:border-emerald-500/60 text-xs font-semibold rounded-lg transition-all flex items-center space-x-1.5 shadow-sm"
+                      title="Export financial data & evidence to Excel (.xlsx)"
+                    >
+                      <FileDown className="w-3.5 h-3.5 text-emerald-400" />
+                      <span>Export Excel</span>
                     </button>
 
                     <button

@@ -292,3 +292,43 @@ export function exportPDFReport(question: string, result: QueryResponse) {
   printWindow.document.close();
   printWindow.focus();
 }
+
+export async function exportExcelReport(question: string, result: QueryResponse) {
+  try {
+    const response = await fetch('/api/export/excel', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        question: question,
+        answer: result.answer,
+        retrieved_chunks: result.context_used,
+        classification: ["FACTUAL"]
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`Export failed with status ${response.status}`);
+    }
+
+    const blob = await response.blob();
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    
+    const sanitizedTitle = (question || 'report')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '_')
+      .slice(0, 35);
+      
+    link.href = url;
+    link.setAttribute('download', `Chronos_Evidence_${sanitizedTitle}.xlsx`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  } catch (err) {
+    console.error('Excel Export Error:', err);
+    alert('Failed to download Excel report. Please make sure the backend API is running.');
+  }
+}

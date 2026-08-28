@@ -20,6 +20,7 @@ pandas>=2.2.2
 pypdf>=4.3.1
 openpyxl>=3.1.5
 python-docx>=1.2.0
+reportlab>=5.0.1
 
 # Evaluation
 ragas>=0.1.11

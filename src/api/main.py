@@ -2,7 +2,7 @@ import os
 import json
 from datetime import datetime
 from pathlib import Path
-from fastapi import FastAPI, HTTPException, UploadFile, File, Depends
+from fastapi import FastAPI, HTTPException, UploadFile, File, Depends, Response
 from fastapi.middleware.cors import CORSMiddleware
 from src.workflow.runner import run_chronos_query
 from src.api.schemas import QueryRequest, QueryResponse, HealthResponse, DocumentMetadata, IngestResponse
@@ -357,6 +357,52 @@ async def get_timeline_events():
     except Exception as e:
         print(f"[WARNING] Timeline fetch failed: {e}")
         return {"events": [], "error": str(e)}
+
+@app.post("/api/export/pdf")
+async def export_pdf_report(payload: dict):
+    """Generates and returns an executive PDF report."""
+    try:
+        from src.utils.report_generator import ReportGenerator
+        query = payload.get("question", "")
+        answer = payload.get("answer", "")
+        sources = payload.get("retrieved_chunks", [])
+        metadata = {
+            "classification": payload.get("classification", []),
+            "timeframe": payload.get("timeframe", "")
+        }
+        
+        pdf_bytes = ReportGenerator.generate_pdf(query, answer, sources, metadata)
+        return Response(
+            content=pdf_bytes,
+            media_type="application/pdf",
+            headers={"Content-Disposition": "attachment; filename=chronos_analysis_report.pdf"}
+        )
+    except Exception as e:
+        print(f"[ERROR] PDF generation failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/export/excel")
+async def export_excel_report(payload: dict):
+    """Generates and returns an Excel .xlsx evidence report."""
+    try:
+        from src.utils.report_generator import ReportGenerator
+        query = payload.get("question", "")
+        answer = payload.get("answer", "")
+        sources = payload.get("retrieved_chunks", [])
+        metadata = {
+            "classification": payload.get("classification", []),
+            "timeframe": payload.get("timeframe", "")
+        }
+        
+        excel_bytes = ReportGenerator.generate_excel(query, answer, sources, metadata)
+        return Response(
+            content=excel_bytes,
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            headers={"Content-Disposition": "attachment; filename=chronos_evidence_data.xlsx"}
+        )
+    except Exception as e:
+        print(f"[ERROR] Excel generation failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 
