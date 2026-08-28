@@ -4,16 +4,22 @@ from config.settings import settings
 
 class Neo4jGraphStore:
     def __init__(self):
-        uri = settings.NEO4J_URI
+        uri = settings.NEO4J_URI.replace("localhost", "127.0.0.1")
         user = settings.NEO4J_USERNAME
         password = settings.NEO4J_PASSWORD
         
-        self.driver = GraphDatabase.driver(uri, auth=(user, password))
-        # Verify connectivity
-        self.driver.verify_connectivity()
+        self.is_connected = False
+        try:
+            self.driver = GraphDatabase.driver(uri, auth=(user, password))
+            self.driver.verify_connectivity()
+            self.is_connected = True
+        except Exception as e:
+            print(f"[WARNING] Neo4j connection unavailable at {uri}: {e}")
+            self.driver = None
 
     def close(self):
-        self.driver.close()
+        if self.driver:
+            self.driver.close()
 
     def __enter__(self):
         return self
@@ -23,6 +29,9 @@ class Neo4jGraphStore:
 
     def create_entity_node(self, name: str, type: str, properties: dict = None):
         """Creates or updates an entity node in Neo4j using MERGE."""
+        if not self.is_connected or not self.driver:
+            print(f"[WARNING] Neo4j offline. Skipping node creation for '{name}'.")
+            return
         if properties is None:
             properties = {}
         
@@ -43,6 +52,8 @@ class Neo4jGraphStore:
 
     def create_relationship(self, from_name: str, to_name: str, rel_type: str, properties: dict = None):
         """Creates or updates a relationship between two entities using MERGE."""
+        if not self.is_connected or not self.driver:
+            return
         if properties is None:
             properties = {}
             
@@ -61,6 +72,8 @@ class Neo4jGraphStore:
 
     def get_relationship_paths(self, entity_name: str, max_depth: int = 3):
         """Finds paths connected to the given entity up to max_depth."""
+        if not self.is_connected or not self.driver:
+            return []
         depth = min(max(1, int(max_depth)), 5)
         
         query = (
@@ -86,6 +99,8 @@ class Neo4jGraphStore:
 
     def get_full_graph(self, limit: int = 150):
         """Returns all entity nodes and their relationships for visualization."""
+        if not self.is_connected or not self.driver:
+            return {"nodes": [], "relationships": []}
         nodes_query = (
             "MATCH (n:Entity) RETURN n.name AS name, n.type AS type, labels(n) AS labels "
             f"LIMIT {limit}"
