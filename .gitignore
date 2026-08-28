@@ -43,6 +43,8 @@ frontend/.vite/
 Thumbs.db
 *.tmp
 *.log
+*.jsonl
+.gemini/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*

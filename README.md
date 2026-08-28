@@ -22,7 +22,8 @@ Project Chronos is a self-correcting, temporal-aware GraphRAG (Graph Retrieval-A
 * **Confidence Score History Dashboard**: Real-time telemetry dashboard displaying confidence score trends over time, grounded validation pass rates, self-correction iteration counts, and detailed query grounding audit trails.
 * **Multi-Turn Conversation Memory**: Maintains context across follow-up queries within a session (e.g. *"What happened next?"* or *"Tell me more about that metric"*), with a dedicated session reset control.
 * **Temporal Timeline Slider**: A dedicated "Timeline" tab in the frontend displaying chronological events extracted from documents across quarters and date attributes, with entity type filtering and deep event inspection.
-* **Executive PDF & Word Report Exporter**: One-click generation of executive briefing reports containing synthesized RAG findings, confidence metrics, citation audit tables, and self-correction rewrite history exported in PDF (`.pdf`), Word (`.docx`), or Markdown (`.md`) formats.
+* **Executive PDF & Excel Data Report Exporter**: One-click generation of executive briefing reports containing synthesized RAG findings, confidence metrics, citation audit tables, and self-correction rewrite history exported in PDF (`.pdf`), Excel (`.xlsx`), Word (`.docx`), or Markdown (`.md`) formats.
+* **Factual Arithmetic Verification Node**: Embedded verification agent (`src/generation/arithmetic_verifier.py`) that scans synthesized responses for numerical statements, financial percentage growths, and metric sums, verifying them against context data to eliminate LLM math hallucinations.
 * **Interactive Knowledge Graph Visualizer**: A dedicated "Knowledge Graph" view in the frontend built with pure HTML Canvas & a custom force simulation. Click any entity node (Company, Person, Product, Event, Metric) to inspect its connections and temporal relationship properties in real-time.
 
 ---
@@ -155,6 +156,8 @@ Once the API is running, you can access:
 * **`GET /api/timeline`**: Returns chronological temporal events extracted from Neo4j for the timeline visualizer.
 * **`GET /api/providers`**: List all configured LLM providers and their active/configured status.
 * **`POST /api/providers/switch`**: Switch the active primary LLM provider at runtime without restarting the server.
+* **`POST /api/export/pdf`**: Generates and downloads a styled executive PDF analysis report.
+* **`POST /api/export/excel`**: Generates and downloads an Excel `.xlsx` workbook containing query summaries and cited document evidence.
 
 ---
 

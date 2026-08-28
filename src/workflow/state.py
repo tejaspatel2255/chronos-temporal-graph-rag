@@ -21,4 +21,6 @@ class ChronosState(TypedDict):
     force_fallback: bool
     conversation_history: List[Dict[str, Any]]  # Multi-turn chat memory
     suggested_questions: List[str]  # Auto-suggested follow-up questions
+    arithmetic_verified: bool
+    audit_notes: str
 

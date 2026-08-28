@@ -13,6 +13,7 @@ from src.generation.validator import validate_answer
 from src.generation.corrector import rewrite_query
 from src.workflow.state import ChronosState
 from src.retrieval.web_fallback import WebSearchFallback
+from src.generation.arithmetic_verifier import ArithmeticVerifier
 
 # Initialize retrieval/generation components once to reuse across steps
 llm_client = LLMClient()
@@ -23,6 +24,7 @@ structured_searcher = StructuredSearcher()
 combiner = HybridCombiner()
 reranker = Reranker()
 web_searcher = WebSearchFallback()
+arithmetic_verifier = ArithmeticVerifier(llm_client)
 
 def classify_query_node(state: ChronosState) -> dict:
     """Classifies query and extracts entities, timeframe, metrics, and paraphrases."""
