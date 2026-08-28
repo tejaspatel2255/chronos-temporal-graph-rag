@@ -177,3 +177,15 @@ def web_fallback_node(state: ChronosState) -> dict:
         "web_fallback_run": True,
         "is_valid": False
     }
+
+def verify_arithmetic_node(state: ChronosState) -> dict:
+    """Verifies numerical calculations & percentage claims in draft answer against context."""
+    draft = state["draft_answer"]
+    context = state["reranked_candidates"]
+    print("[*] [LangGraph Node: Arithmetic Verification] Checking numerical accuracy against ground truth context...")
+    verification = arithmetic_verifier.verify_answer_math(draft, context)
+    return {
+        "draft_answer": verification.get("answer", draft),
+        "arithmetic_verified": verification.get("verified", True),
+        "audit_notes": verification.get("notes", "")
+    }

@@ -5,6 +5,7 @@ from src.workflow.nodes import (
     retrieve_node,
     rerank_node,
     generate_node,
+    verify_arithmetic_node,
     validate_node,
     correct_node,
     web_fallback_node
@@ -34,6 +35,7 @@ def build_chronos_graph():
     workflow.add_node("retrieve", retrieve_node)
     workflow.add_node("rerank", rerank_node)
     workflow.add_node("generate", generate_node)
+    workflow.add_node("verify_arithmetic", verify_arithmetic_node)
     workflow.add_node("validate", validate_node)
     workflow.add_node("correct", correct_node)
     workflow.add_node("web_fallback", web_fallback_node)
@@ -43,7 +45,8 @@ def build_chronos_graph():
     workflow.add_edge("classify", "retrieve")
     workflow.add_edge("retrieve", "rerank")
     workflow.add_edge("rerank", "generate")
-    workflow.add_edge("generate", "validate")
+    workflow.add_edge("generate", "verify_arithmetic")
+    workflow.add_edge("verify_arithmetic", "validate")
     
     # Conditional Router Edge
     workflow.add_conditional_edges(
