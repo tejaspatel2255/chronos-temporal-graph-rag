@@ -3,18 +3,18 @@ import ReactMarkdown from 'react-markdown';
 import KnowledgeGraphView from './KnowledgeGraphView';
 import TemporalTimelineView from './TemporalTimelineView';
 import ConfidenceDashboardView from './ConfidenceDashboardView';
-import { 
-  Search, 
-  Database, 
-  Globe, 
-  FileText, 
-  AlertTriangle, 
-  CheckCircle, 
-  ChevronDown, 
-  ChevronUp, 
-  Clock, 
-  RefreshCw, 
-  ArrowRight, 
+import {
+  Search,
+  Database,
+  Globe,
+  FileText,
+  AlertTriangle,
+  CheckCircle,
+  ChevronDown,
+  ChevronUp,
+  Clock,
+  RefreshCw,
+  ArrowRight,
   HelpCircle,
   BookOpen,
   History,
@@ -143,7 +143,7 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [loadingStep, setLoadingStep] = useState(0);
   const [error, setError] = useState<string | null>(null);
-  
+
   // Sidebar State & Tabs
   const [sidebarTab, setSidebarTab] = useState<'documents' | 'history' | 'settings'>('documents');
   const [documents, setDocuments] = useState<DocumentMetadata[]>([]);
@@ -162,7 +162,7 @@ export default function App() {
   const [health, setHealth] = useState<HealthStatus | null>(null);
   const [healthErr, setHealthErr] = useState(false);
   const [history, setHistory] = useState<HistoryItem[]>([]);
-  
+
   // Local session cache for full results
   const [sessionCache, setSessionCache] = useState<Record<string, QueryResponse>>({});
 
@@ -440,7 +440,7 @@ export default function App() {
       const data: QueryResponse = await response.json();
       setResult(data);
       setChatTurnCount(prev => prev + 1);
-      
+
       setSessionCache(prev => ({
         ...prev,
         [qText.toLowerCase().trim()]: data
@@ -494,11 +494,11 @@ export default function App() {
 
   return (
     <div className="flex h-screen bg-slate-950 font-sans overflow-hidden">
-      
+
       {/* Sidebar - Documents & Logs */}
       <aside className="w-80 bg-slate-900 border-r border-slate-800 flex flex-col justify-between shrink-0">
         <div className="flex flex-col grow overflow-hidden">
-          
+
           {/* Brand Logo */}
           <div className="p-5 border-b border-slate-800 flex items-center space-x-3">
             <div className="w-9 h-9 rounded-lg bg-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
@@ -516,7 +516,7 @@ export default function App() {
               <span className="text-xs font-semibold text-slate-400 flex items-center">
                 <Activity className="w-3.5 h-3.5 mr-1.5 text-indigo-400" /> System Health
               </span>
-              <button 
+              <button
                 onClick={() => { checkHealth(); fetchDocuments(); }}
                 className="text-xs text-slate-500 hover:text-slate-300 transition-colors p-1"
                 title="Refresh Status & Documents"
@@ -524,7 +524,7 @@ export default function App() {
                 <RefreshCw className="w-3 h-3" />
               </button>
             </div>
-            
+
             <div className="flex items-center space-x-2.5 mb-3">
               <div className="relative flex h-2 w-2">
                 <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${status.ping}`}></span>
@@ -545,7 +545,7 @@ export default function App() {
                 </span>
               </div>
             </div>
-            
+
             <div className="mt-2 pt-2 border-t border-slate-800/50 text-[11px]">
               <span className="block text-slate-500">Active LLM Provider:</span>
               <span className="font-semibold text-indigo-400 capitalize">
@@ -558,23 +558,21 @@ export default function App() {
           <div className="mx-4 mt-4 p-1 bg-slate-950/80 rounded-lg border border-slate-800 flex space-x-1">
             <button
               onClick={() => setSidebarTab('documents')}
-              className={`flex-1 py-1.5 text-[11px] font-semibold rounded-md transition-all flex items-center justify-center space-x-1 ${
-                sidebarTab === 'documents' 
-                  ? 'bg-indigo-600 text-white shadow-sm' 
+              className={`flex-1 py-1.5 text-[11px] font-semibold rounded-md transition-all flex items-center justify-center space-x-1 ${sidebarTab === 'documents'
+                  ? 'bg-indigo-600 text-white shadow-sm'
                   : 'text-slate-400 hover:text-slate-200'
-              }`}
+                }`}
             >
               <Folder className="w-3 h-3" />
               <span>Docs ({documents.length})</span>
             </button>
-            
+
             <button
               onClick={() => setSidebarTab('history')}
-              className={`flex-1 py-1.5 text-[11px] font-semibold rounded-md transition-all flex items-center justify-center space-x-1 ${
-                sidebarTab === 'history' 
-                  ? 'bg-indigo-600 text-white shadow-sm' 
+              className={`flex-1 py-1.5 text-[11px] font-semibold rounded-md transition-all flex items-center justify-center space-x-1 ${sidebarTab === 'history'
+                  ? 'bg-indigo-600 text-white shadow-sm'
                   : 'text-slate-400 hover:text-slate-200'
-              }`}
+                }`}
             >
               <History className="w-3 h-3" />
               <span>History</span>
@@ -582,11 +580,10 @@ export default function App() {
 
             <button
               onClick={() => setSidebarTab('settings')}
-              className={`flex-1 py-1.5 text-[11px] font-semibold rounded-md transition-all flex items-center justify-center space-x-1 ${
-                sidebarTab === 'settings' 
-                  ? 'bg-indigo-600 text-white shadow-sm' 
+              className={`flex-1 py-1.5 text-[11px] font-semibold rounded-md transition-all flex items-center justify-center space-x-1 ${sidebarTab === 'settings'
+                  ? 'bg-indigo-600 text-white shadow-sm'
                   : 'text-slate-400 hover:text-slate-200'
-              }`}
+                }`}
             >
               <Cpu className="w-3 h-3" />
               <span>LLM</span>
@@ -598,12 +595,12 @@ export default function App() {
             <div className="mt-3 flex-1 flex flex-col min-h-0 px-4">
               {/* Document Upload Button */}
               <div className="mb-3">
-                <input 
-                  type="file" 
-                  ref={fileInputRef} 
+                <input
+                  type="file"
+                  ref={fileInputRef}
                   onChange={handleFileChange}
-                  accept=".pdf,.txt,.md,.docx,.xlsx,.xls,.csv" 
-                  className="hidden" 
+                  accept=".pdf,.txt,.md,.docx,.xlsx,.xls,.csv"
+                  className="hidden"
                 />
                 <button
                   onClick={() => fileInputRef.current?.click()}
@@ -648,13 +645,12 @@ export default function App() {
                 )}
 
                 {uploadStatus && !ingestionProgress && (
-                  <div className={`mt-2 p-2 rounded text-[11px] font-mono leading-tight ${
-                    uploadStatus.startsWith('✓') 
-                      ? 'bg-emerald-500/10 text-emerald-300 border border-emerald-500/20' 
+                  <div className={`mt-2 p-2 rounded text-[11px] font-mono leading-tight ${uploadStatus.startsWith('✓')
+                      ? 'bg-emerald-500/10 text-emerald-300 border border-emerald-500/20'
                       : uploadStatus.startsWith('❌')
-                      ? 'bg-rose-500/10 text-rose-300 border border-rose-500/20'
-                      : 'bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 animate-pulse'
-                  }`}>
+                        ? 'bg-rose-500/10 text-rose-300 border border-rose-500/20'
+                        : 'bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 animate-pulse'
+                    }`}>
                     {uploadStatus}
                   </div>
                 )}
@@ -701,11 +697,10 @@ export default function App() {
                         <button
                           key={tIdx}
                           onClick={() => setSelectedTagFilter(isActive ? null : tag)}
-                          className={`px-2 py-0.5 rounded text-[10px] font-medium transition-all ${
-                            isActive
+                          className={`px-2 py-0.5 rounded text-[10px] font-medium transition-all ${isActive
                               ? 'bg-indigo-600 text-white shadow-sm'
                               : 'bg-slate-900 hover:bg-slate-800 text-indigo-300 border border-indigo-500/30'
-                          }`}
+                            }`}
                         >
                           #{tag}
                         </button>
@@ -726,7 +721,7 @@ export default function App() {
                 ) : (
                   documents
                     .filter(doc => {
-                      const matchesSearch = docSearchQuery === '' || 
+                      const matchesSearch = docSearchQuery === '' ||
                         doc.filename.toLowerCase().includes(docSearchQuery.toLowerCase()) ||
                         (doc.tags && doc.tags.some(t => t.toLowerCase().includes(docSearchQuery.toLowerCase())));
                       const matchesTag = !selectedTagFilter || (doc.tags && doc.tags.includes(selectedTagFilter));
@@ -745,17 +740,16 @@ export default function App() {
                           className="p-3 rounded-lg bg-slate-950/40 border border-slate-800/80 hover:border-indigo-500/40 transition-all flex flex-col space-y-2 group"
                         >
                           <div className="flex items-start space-x-2.5">
-                            <div className={`p-1.5 rounded shrink-0 ${
-                              isPdf 
-                                ? 'bg-rose-500/10 text-rose-400' 
+                            <div className={`p-1.5 rounded shrink-0 ${isPdf
+                                ? 'bg-rose-500/10 text-rose-400'
                                 : isXls
-                                ? 'bg-emerald-500/10 text-emerald-400'
-                                : isDocx
-                                ? 'bg-indigo-500/10 text-indigo-400'
-                                : isMd 
-                                ? 'bg-sky-500/10 text-sky-400' 
-                                : 'bg-slate-500/10 text-slate-400'
-                            }`}>
+                                  ? 'bg-emerald-500/10 text-emerald-400'
+                                  : isDocx
+                                    ? 'bg-indigo-500/10 text-indigo-400'
+                                    : isMd
+                                      ? 'bg-sky-500/10 text-sky-400'
+                                      : 'bg-slate-500/10 text-slate-400'
+                              }`}>
                               <FileText className="w-4 h-4" />
                             </div>
                             <div className="flex-1 overflow-hidden">
@@ -859,7 +853,7 @@ export default function App() {
             <div className="mt-3 flex-1 flex flex-col min-h-0 px-4">
               <div className="mb-2 flex items-center justify-between">
                 <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Saved Query Events</span>
-                <button 
+                <button
                   onClick={fetchHistory}
                   className="text-[10px] text-indigo-400 hover:text-indigo-300 transition-colors"
                 >
@@ -913,7 +907,7 @@ export default function App() {
             <div className="mt-3 flex-1 flex flex-col min-h-0 px-4">
               <div className="mb-2 flex items-center justify-between">
                 <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Active LLM Provider</span>
-                <button 
+                <button
                   onClick={fetchProviders}
                   className="text-[10px] text-indigo-400 hover:text-indigo-300 transition-colors"
                 >
@@ -931,13 +925,12 @@ export default function App() {
                     <div
                       key={p.key}
                       onClick={() => !p.is_active && p.configured && handleSwitchProvider(p.key)}
-                      className={`p-3 rounded-lg border transition-all flex flex-col space-y-1.5 cursor-pointer ${
-                        p.is_active 
-                          ? 'bg-indigo-600/15 border-indigo-500/60 shadow-sm' 
-                          : p.configured 
-                          ? 'bg-slate-950/40 border-slate-800 hover:border-slate-700' 
-                          : 'bg-slate-950/20 border-slate-900 opacity-50 cursor-not-allowed'
-                      }`}
+                      className={`p-3 rounded-lg border transition-all flex flex-col space-y-1.5 cursor-pointer ${p.is_active
+                          ? 'bg-indigo-600/15 border-indigo-500/60 shadow-sm'
+                          : p.configured
+                            ? 'bg-slate-950/40 border-slate-800 hover:border-slate-700'
+                            : 'bg-slate-950/20 border-slate-900 opacity-50 cursor-not-allowed'
+                        }`}
                     >
                       <div className="flex items-center justify-between">
                         <span className={`text-xs font-bold ${p.is_active ? 'text-indigo-300' : 'text-slate-200'}`}>
@@ -1026,44 +1019,40 @@ export default function App() {
         <div className="px-6 py-3 border-b border-slate-800 bg-slate-900/30 flex items-center space-x-2 shrink-0">
           <button
             onClick={() => setMainView('query')}
-            className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center space-x-1.5 ${
-              mainView === 'query'
+            className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center space-x-1.5 ${mainView === 'query'
                 ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/20'
                 : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
-            }`}
+              }`}
           >
             <Search className="w-3.5 h-3.5" />
             <span>RAG Query</span>
           </button>
           <button
             onClick={() => setMainView('graph')}
-            className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center space-x-1.5 ${
-              mainView === 'graph'
+            className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center space-x-1.5 ${mainView === 'graph'
                 ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/20'
                 : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
-            }`}
+              }`}
           >
             <Share2 className="w-3.5 h-3.5" />
             <span>Knowledge Graph</span>
           </button>
           <button
             onClick={() => setMainView('timeline')}
-            className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center space-x-1.5 ${
-              mainView === 'timeline'
+            className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center space-x-1.5 ${mainView === 'timeline'
                 ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/20'
                 : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
-            }`}
+              }`}
           >
             <Clock className="w-3.5 h-3.5" />
             <span>Timeline</span>
           </button>
           <button
             onClick={() => setMainView('analytics')}
-            className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center space-x-1.5 ${
-              mainView === 'analytics'
+            className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center space-x-1.5 ${mainView === 'analytics'
                 ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/20'
                 : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
-            }`}
+              }`}
           >
             <Activity className="w-3.5 h-3.5" />
             <span>Confidence Analytics</span>
@@ -1105,533 +1094,533 @@ export default function App() {
         {/* Query View wrapper */}
         {mainView === 'query' && <>
 
-        {/* Header alert for Backend offline */}
-        {healthErr && (
-          <div className="bg-rose-500/10 border-b border-rose-500/20 px-6 py-3 flex items-center justify-between text-xs text-rose-400">
-            <span className="flex items-center">
-              <AlertTriangle className="w-4 h-4 mr-2 shrink-0 text-rose-500 animate-pulse" />
-              <strong>Connection Error:</strong> Cannot connect to the FastAPI backend. Check if the terminal is running <code>python run_api.py</code> on port 8000.
-            </span>
-            <button 
-              onClick={checkHealth}
-              className="px-2.5 py-1 bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 font-semibold rounded transition-colors flex items-center"
-            >
-              <RefreshCw className="w-3 h-3 mr-1" /> Reconnect
-            </button>
-          </div>
-        )}
-
-        {/* Header alert for Graph DB offline */}
-        {health && !health.neo4j_connected && (
-          <div className="bg-amber-500/10 border-b border-amber-500/20 px-6 py-2.5 flex items-center text-xs text-amber-400">
-            <AlertTriangle className="w-4 h-4 mr-2 shrink-0 text-amber-500" />
-            <span>
-              <strong>Graph Index Offline:</strong> Local Neo4j instance at <code>localhost:7687</code> is unreachable. The RAG pipeline will fallback to hybrid vector + lexical search.
-            </span>
-          </div>
-        )}
-
-        {/* Search Panel */}
-        <div className="p-6 border-b border-slate-900 bg-slate-900/20 flex flex-col space-y-4 shrink-0">
-          <form 
-            onSubmit={(e) => {
-              e.preventDefault();
-              handleSubmit(question, forceFallback);
-            }}
-            className="w-full flex space-x-3 items-stretch"
-          >
-            <div className="relative flex-1">
-              <input
-                type="text"
-                placeholder="Ask Chronos about corporate memos, financial records, or timelines (e.g. Q2 2024 objectives)..."
-                value={question}
-                onChange={(e) => setQuestion(e.target.value)}
-                disabled={isLoading}
-                className="w-full h-12 pl-11 pr-4 bg-slate-900 hover:bg-slate-900/80 focus:bg-slate-900 border border-slate-800 focus:border-indigo-500 rounded-lg text-sm text-slate-100 placeholder-slate-500 outline-none transition-all shadow-inner focus:shadow-[0_0_15px_rgba(99,102,241,0.1)]"
-              />
-              <Search className="absolute left-4 top-3.5 w-5 h-5 text-slate-500" />
-            </div>
-            
-            <button
-              type="submit"
-              disabled={isLoading || !question.trim()}
-              className="px-6 bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-800 disabled:text-slate-500 text-white text-sm font-semibold rounded-lg transition-all flex items-center shadow-lg shadow-indigo-600/10 hover:shadow-indigo-600/20 shrink-0"
-            >
-              {isLoading ? (
-                <>
-                  <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                  Processing...
-                </>
-              ) : (
-                <>
-                  Analyze
-                  <ArrowRight className="w-4 h-4 ml-2" />
-                </>
-              )}
-            </button>
-          </form>
-
-          {/* Toggle flags */}
-          <div className="flex items-center space-x-6 text-xs text-slate-400">
-            <label className="flex items-center space-x-2 cursor-pointer select-none hover:text-slate-200 transition-colors">
-              <input
-                type="checkbox"
-                checked={forceFallback}
-                onChange={(e) => setForceFallback(e.target.checked)}
-                disabled={isLoading}
-                className="rounded border-slate-800 bg-slate-900 text-indigo-600 focus:ring-indigo-500 focus:ring-offset-slate-950 w-4 h-4"
-              />
-              <span>Force Live Web Search Fallback</span>
-            </label>
-
-            <span className="text-slate-600">|</span>
-            
-            <div className="flex items-center space-x-1">
-              <HelpCircle className="w-3.5 h-3.5 text-slate-500" />
-              <span>Pipeline uses local Vector Store (ChromaDB) + Relationship Store (Neo4j).</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Content Panel */}
-        <div className="flex-1 overflow-y-auto p-8">
-          
-          {/* Initial State / Help Instructions */}
-          {!isLoading && !result && !error && (
-            <div className="max-w-2xl mx-auto py-16 flex flex-col items-center text-center space-y-6">
-              <div className="w-16 h-16 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-center text-3xl">
-                🔮
-              </div>
-              <div>
-                <h3 className="text-lg font-bold text-slate-200">How to Query Chronos</h3>
-                <p className="text-sm text-slate-400 mt-1 max-w-md mx-auto">
-                  Type an analytical query to evaluate corporate temporal knowledge. If the system fails to verify claims locally, it corrects itself or falls back to live web search.
-                </p>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3 w-full mt-4">
-                <button
-                  onClick={() => {
-                    const q = "What is the capital allocation for Project Chronos in the year 2026?";
-                    setQuestion(q);
-                    handleSubmit(q, false);
-                  }}
-                  className="p-4 rounded-xl bg-slate-900/40 hover:bg-slate-900 border border-slate-800/80 hover:border-slate-700 text-left text-xs transition-all flex flex-col space-y-2 group"
-                >
-                  <span className="font-semibold text-indigo-400 flex items-center">
-                    <Globe className="w-3.5 h-3.5 mr-1" /> Web Fallback Query
-                  </span>
-                  <span className="text-slate-400 group-hover:text-slate-300">
-                    "What is the capital allocation for Project Chronos in the year 2026?"
-                  </span>
-                </button>
-
-                <button
-                  onClick={() => {
-                    const q = "What are the key findings in Q2 2024 strategic reports?";
-                    setQuestion(q);
-                    handleSubmit(q, false);
-                  }}
-                  className="p-4 rounded-xl bg-slate-900/40 hover:bg-slate-900 border border-slate-800/80 hover:border-slate-700 text-left text-xs transition-all flex flex-col space-y-2 group"
-                >
-                  <span className="font-semibold text-indigo-400 flex items-center">
-                    <BookOpen className="w-3.5 h-3.5 mr-1" /> Internal Memo Query
-                  </span>
-                  <span className="text-slate-400 group-hover:text-slate-300">
-                    "What are the key findings in Q2 2024 strategic reports?"
-                  </span>
-                </button>
-              </div>
+          {/* Header alert for Backend offline */}
+          {healthErr && (
+            <div className="bg-rose-500/10 border-b border-rose-500/20 px-6 py-3 flex items-center justify-between text-xs text-rose-400">
+              <span className="flex items-center">
+                <AlertTriangle className="w-4 h-4 mr-2 shrink-0 text-rose-500 animate-pulse" />
+                <strong>Connection Error:</strong> Cannot connect to the FastAPI backend. Check if the terminal is running <code>python run_api.py</code> on port 8000.
+              </span>
+              <button
+                onClick={checkHealth}
+                className="px-2.5 py-1 bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 font-semibold rounded transition-colors flex items-center"
+              >
+                <RefreshCw className="w-3 h-3 mr-1" /> Reconnect
+              </button>
             </div>
           )}
 
-          {/* Loading Animation Card */}
-          {isLoading && (
-            <div className="max-w-3xl mx-auto py-16 flex flex-col items-center justify-center space-y-8 bg-slate-900/20 border border-slate-900/60 rounded-2xl p-8 shadow-2xl backdrop-blur-sm">
-              <div className="relative w-20 h-20">
-                <div className="absolute inset-0 rounded-full border-4 border-slate-800 border-t-indigo-500 animate-spin"></div>
-                <div className="absolute inset-3 rounded-full border-4 border-slate-800 border-b-sky-400 animate-spin" style={{ animationDirection: 'reverse', animationDuration: '1.5s' }}></div>
-                <div className="absolute inset-7 rounded-full bg-slate-950 flex items-center justify-center text-xl">
-                  ⏳
+          {/* Header alert for Graph DB offline */}
+          {health && !health.neo4j_connected && (
+            <div className="bg-amber-500/10 border-b border-amber-500/20 px-6 py-2.5 flex items-center text-xs text-amber-400">
+              <AlertTriangle className="w-4 h-4 mr-2 shrink-0 text-amber-500" />
+              <span>
+                <strong>Graph Index Offline:</strong> Local Neo4j instance at <code>localhost:7687</code> is unreachable. The RAG pipeline will fallback to hybrid vector + lexical search.
+              </span>
+            </div>
+          )}
+
+          {/* Search Panel */}
+          <div className="p-6 border-b border-slate-900 bg-slate-900/20 flex flex-col space-y-4 shrink-0">
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleSubmit(question, forceFallback);
+              }}
+              className="w-full flex space-x-3 items-stretch"
+            >
+              <div className="relative flex-1">
+                <input
+                  type="text"
+                  placeholder="Ask Chronos about corporate memos, financial records, or timelines (e.g. Q2 2024 objectives)..."
+                  value={question}
+                  onChange={(e) => setQuestion(e.target.value)}
+                  disabled={isLoading}
+                  className="w-full h-12 pl-11 pr-4 bg-slate-900 hover:bg-slate-900/80 focus:bg-slate-900 border border-slate-800 focus:border-indigo-500 rounded-lg text-sm text-slate-100 placeholder-slate-500 outline-none transition-all shadow-inner focus:shadow-[0_0_15px_rgba(99,102,241,0.1)]"
+                />
+                <Search className="absolute left-4 top-3.5 w-5 h-5 text-slate-500" />
+              </div>
+
+              <button
+                type="submit"
+                disabled={isLoading || !question.trim()}
+                className="px-6 bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-800 disabled:text-slate-500 text-white text-sm font-semibold rounded-lg transition-all flex items-center shadow-lg shadow-indigo-600/10 hover:shadow-indigo-600/20 shrink-0"
+              >
+                {isLoading ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                    Processing...
+                  </>
+                ) : (
+                  <>
+                    Analyze
+                    <ArrowRight className="w-4 h-4 ml-2" />
+                  </>
+                )}
+              </button>
+            </form>
+
+            {/* Toggle flags */}
+            <div className="flex items-center space-x-6 text-xs text-slate-400">
+              <label className="flex items-center space-x-2 cursor-pointer select-none hover:text-slate-200 transition-colors">
+                <input
+                  type="checkbox"
+                  checked={forceFallback}
+                  onChange={(e) => setForceFallback(e.target.checked)}
+                  disabled={isLoading}
+                  className="rounded border-slate-800 bg-slate-900 text-indigo-600 focus:ring-indigo-500 focus:ring-offset-slate-950 w-4 h-4"
+                />
+                <span>Force Live Web Search Fallback</span>
+              </label>
+
+              <span className="text-slate-600">|</span>
+
+              <div className="flex items-center space-x-1">
+                <HelpCircle className="w-3.5 h-3.5 text-slate-500" />
+                <span>Pipeline uses local Vector Store (ChromaDB) + Relationship Store (Neo4j).</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Content Panel */}
+          <div className="flex-1 overflow-y-auto p-8">
+
+            {/* Initial State / Help Instructions */}
+            {!isLoading && !result && !error && (
+              <div className="max-w-2xl mx-auto py-16 flex flex-col items-center text-center space-y-6">
+                <div className="w-16 h-16 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-center text-3xl">
+                  🔮
                 </div>
-              </div>
-              
-              <div className="text-center space-y-2">
-                <h4 className="text-sm font-semibold text-indigo-400 uppercase tracking-widest animate-pulse">Running Self-Correcting Loop</h4>
-                <p className="text-base text-slate-200 transition-all font-medium duration-500 max-w-lg">
-                  "{LOADING_STEPS[loadingStep]}"
-                </p>
-                <p className="text-xs text-slate-500">This can take up to 40 seconds if query classification requires validation retries or web search fallback.</p>
-              </div>
-            </div>
-          )}
+                <div>
+                  <h3 className="text-lg font-bold text-slate-200">How to Query Chronos</h3>
+                  <p className="text-sm text-slate-400 mt-1 max-w-md mx-auto">
+                    Type an analytical query to evaluate corporate temporal knowledge. If the system fails to verify claims locally, it corrects itself or falls back to live web search.
+                  </p>
+                </div>
 
-          {/* Error Message Card */}
-          {error && (
-            <div className="max-w-3xl mx-auto bg-rose-500/10 border border-rose-500/25 rounded-2xl p-6 flex items-start space-x-4">
-              <AlertTriangle className="w-6 h-6 text-rose-500 shrink-0 mt-0.5" />
-              <div className="space-y-1">
-                <h4 className="text-sm font-bold text-rose-400">Query Analysis Failed</h4>
-                <p className="text-xs text-slate-300 leading-relaxed">{error}</p>
-                <div className="pt-3 flex space-x-3">
-                  <button 
-                    onClick={() => activeQuestion && handleSubmit(activeQuestion, forceFallback)}
-                    className="px-3 py-1.5 bg-rose-500/25 hover:bg-rose-500/40 text-rose-200 text-xs font-semibold rounded transition-colors"
+                <div className="grid grid-cols-2 gap-3 w-full mt-4">
+                  <button
+                    onClick={() => {
+                      const q = "What is the capital allocation for Project Chronos in the year 2026?";
+                      setQuestion(q);
+                      handleSubmit(q, false);
+                    }}
+                    className="p-4 rounded-xl bg-slate-900/40 hover:bg-slate-900 border border-slate-800/80 hover:border-slate-700 text-left text-xs transition-all flex flex-col space-y-2 group"
                   >
-                    Try Again
+                    <span className="font-semibold text-indigo-400 flex items-center">
+                      <Globe className="w-3.5 h-3.5 mr-1" /> Web Fallback Query
+                    </span>
+                    <span className="text-slate-400 group-hover:text-slate-300">
+                      "What is the capital allocation for Project Chronos in the year 2026?"
+                    </span>
                   </button>
-                  <button 
-                    onClick={() => setError(null)}
-                    className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded transition-colors"
+
+                  <button
+                    onClick={() => {
+                      const q = "What are the key findings in Q2 2024 strategic reports?";
+                      setQuestion(q);
+                      handleSubmit(q, false);
+                    }}
+                    className="p-4 rounded-xl bg-slate-900/40 hover:bg-slate-900 border border-slate-800/80 hover:border-slate-700 text-left text-xs transition-all flex flex-col space-y-2 group"
                   >
-                    Clear Error
+                    <span className="font-semibold text-indigo-400 flex items-center">
+                      <BookOpen className="w-3.5 h-3.5 mr-1" /> Internal Memo Query
+                    </span>
+                    <span className="text-slate-400 group-hover:text-slate-300">
+                      "What are the key findings in Q2 2024 strategic reports?"
+                    </span>
                   </button>
                 </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Results Render Panel */}
-          {!isLoading && result && (
-            <div className="max-w-4xl mx-auto space-y-6">
-              
-              {/* Query & Badges Header */}
-              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
-                <div className="flex flex-col space-y-2">
-                  <span className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest">Question Analyzed</span>
-                  <h2 className="text-lg font-bold text-white leading-snug">
-                    {activeQuestion || "Enterprise RAG Query"}
-                  </h2>
+            {/* Loading Animation Card */}
+            {isLoading && (
+              <div className="max-w-3xl mx-auto py-16 flex flex-col items-center justify-center space-y-8 bg-slate-900/20 border border-slate-900/60 rounded-2xl p-8 shadow-2xl backdrop-blur-sm">
+                <div className="relative w-20 h-20">
+                  <div className="absolute inset-0 rounded-full border-4 border-slate-800 border-t-indigo-500 animate-spin"></div>
+                  <div className="absolute inset-3 rounded-full border-4 border-slate-800 border-b-sky-400 animate-spin" style={{ animationDirection: 'reverse', animationDuration: '1.5s' }}></div>
+                  <div className="absolute inset-7 rounded-full bg-slate-950 flex items-center justify-center text-xl">
+                    ⏳
+                  </div>
                 </div>
 
-                <div className="flex flex-wrap gap-2.5 pt-2 border-t border-slate-800/60">
-                  {/* Confidence Badge */}
-                  <div className={`px-3 py-1 rounded-full border text-xs font-semibold flex items-center ${getConfidenceColor(result.confidence_score)}`}>
-                    <Cpu className="w-3.5 h-3.5 mr-1.5" />
-                    Confidence: {result.confidence_score}%
+                <div className="text-center space-y-2">
+                  <h4 className="text-sm font-semibold text-indigo-400 uppercase tracking-widest animate-pulse">Running Self-Correcting Loop</h4>
+                  <p className="text-base text-slate-200 transition-all font-medium duration-500 max-w-lg">
+                    "{LOADING_STEPS[loadingStep]}"
+                  </p>
+                  <p className="text-xs text-slate-500">This can take up to 40 seconds if query classification requires validation retries or web search fallback.</p>
+                </div>
+              </div>
+            )}
+
+            {/* Error Message Card */}
+            {error && (
+              <div className="max-w-3xl mx-auto bg-rose-500/10 border border-rose-500/25 rounded-2xl p-6 flex items-start space-x-4">
+                <AlertTriangle className="w-6 h-6 text-rose-500 shrink-0 mt-0.5" />
+                <div className="space-y-1">
+                  <h4 className="text-sm font-bold text-rose-400">Query Analysis Failed</h4>
+                  <p className="text-xs text-slate-300 leading-relaxed">{error}</p>
+                  <div className="pt-3 flex space-x-3">
+                    <button
+                      onClick={() => activeQuestion && handleSubmit(activeQuestion, forceFallback)}
+                      className="px-3 py-1.5 bg-rose-500/25 hover:bg-rose-500/40 text-rose-200 text-xs font-semibold rounded transition-colors"
+                    >
+                      Try Again
+                    </button>
+                    <button
+                      onClick={() => setError(null)}
+                      className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded transition-colors"
+                    >
+                      Clear Error
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Results Render Panel */}
+            {!isLoading && result && (
+              <div className="max-w-4xl mx-auto space-y-6">
+
+                {/* Query & Badges Header */}
+                <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
+                  <div className="flex flex-col space-y-2">
+                    <span className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest">Question Analyzed</span>
+                    <h2 className="text-lg font-bold text-white leading-snug">
+                      {activeQuestion || "Enterprise RAG Query"}
+                    </h2>
                   </div>
 
-                  {/* Validity Badge */}
-                  <div className={`px-3 py-1 rounded-full border text-xs font-semibold flex items-center ${result.is_valid ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30' : 'text-amber-400 bg-amber-500/10 border-amber-500/30'}`}>
-                    {result.is_valid ? (
-                      <>
-                        <CheckCircle className="w-3.5 h-3.5 mr-1.5" />
-                        Grounded & Validated
-                      </>
-                    ) : (
-                      <>
-                        <AlertTriangle className="w-3.5 h-3.5 mr-1.5 text-amber-500" />
-                        Low-Grounding Warning
-                      </>
+                  <div className="flex flex-wrap gap-2.5 pt-2 border-t border-slate-800/60">
+                    {/* Confidence Badge */}
+                    <div className={`px-3 py-1 rounded-full border text-xs font-semibold flex items-center ${getConfidenceColor(result.confidence_score)}`}>
+                      <Cpu className="w-3.5 h-3.5 mr-1.5" />
+                      Confidence: {result.confidence_score}%
+                    </div>
+
+                    {/* Validity Badge */}
+                    <div className={`px-3 py-1 rounded-full border text-xs font-semibold flex items-center ${result.is_valid ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30' : 'text-amber-400 bg-amber-500/10 border-amber-500/30'}`}>
+                      {result.is_valid ? (
+                        <>
+                          <CheckCircle className="w-3.5 h-3.5 mr-1.5" />
+                          Grounded & Validated
+                        </>
+                      ) : (
+                        <>
+                          <AlertTriangle className="w-3.5 h-3.5 mr-1.5 text-amber-500" />
+                          Low-Grounding Warning
+                        </>
+                      )}
+                    </div>
+
+                    {/* Cache Hit Badge */}
+                    {result.cached && (
+                      <div className="px-3 py-1 rounded-full border border-sky-500/40 bg-sky-500/10 text-sky-300 text-xs font-semibold flex items-center shadow-sm">
+                        <RefreshCw className="w-3.5 h-3.5 mr-1.5 text-sky-400" />
+                        <span>Cache Hit (Instant)</span>
+                      </div>
+                    )}
+
+                    {/* Web Fallback Run Badge */}
+                    {isWebResult && (
+                      <div className="px-3 py-1 rounded-full border border-sky-500/30 bg-sky-500/10 text-sky-400 text-xs font-semibold flex items-center">
+                        <Globe className="w-3.5 h-3.5 mr-1.5 text-sky-400 animate-pulse" />
+                        Includes Live Web Search Results
+                      </div>
+                    )}
+
+                    {/* RAGAS Overall Badge */}
+                    {result.ragas_eval && (
+                      <div className="px-3 py-1 rounded-full border border-purple-500/40 bg-purple-500/10 text-purple-300 text-xs font-semibold flex items-center shadow-sm">
+                        <BarChart3 className="w-3.5 h-3.5 mr-1.5 text-purple-400" />
+                        <span>RAGAS Benchmark: {result.ragas_eval.overall_ragas_score}/100 ({result.ragas_eval.verdict})</span>
+                      </div>
+                    )}
+
+                    {/* Retries count */}
+                    <span className="text-xs text-slate-500 py-1 px-2 self-center bg-slate-950/40 rounded border border-slate-800">
+                      {result.retries === 0
+                        ? "Answered immediately"
+                        : `Answered after ${result.retries} self-correction rewrite cycle${result.retries > 1 ? 's' : ''}`
+                      }
+                    </span>
+                  </div>
+
+                  {/* Grounding/Validation failure callout */}
+                  {!result.is_valid && (
+                    <div className="mt-4 p-3 bg-amber-500/10 border border-amber-500/25 rounded-lg flex items-start text-xs text-amber-400 leading-normal">
+                      <AlertTriangle className="w-4 h-4 mr-2 shrink-0 text-amber-500 mt-0.5" />
+                      <span>
+                        <strong>Disclaimer:</strong> This response failed target grounding validation metrics (either low source correspondence or low confidence). Please evaluate citations and context carefully below.
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                {/* RAGAS Quantitative Evaluation Benchmark Breakdown Panel */}
+                {result.ragas_eval && (
+                  <div className="bg-slate-900/90 border border-purple-500/30 rounded-2xl p-5 shadow-xl space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <BarChart3 className="w-4 h-4 text-purple-400" />
+                        <h3 className="text-xs font-bold uppercase tracking-wider text-purple-300">RAGAS Quantitative Benchmark Metrics</h3>
+                      </div>
+                      <span className="text-[10px] font-semibold text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded border border-purple-500/20">
+                        Overall Score: {result.ragas_eval.overall_ragas_score}%
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                      {/* Faithfulness */}
+                      <div className="p-3 bg-slate-950/60 rounded-xl border border-slate-800 flex flex-col space-y-1">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase">Faithfulness</span>
+                        <div className="flex items-baseline justify-between">
+                          <span className="text-base font-extrabold text-emerald-400">{result.ragas_eval.faithfulness}%</span>
+                          <span className="text-[9px] text-slate-500">Zero Hallucination</span>
+                        </div>
+                        <div className="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
+                          <div className="bg-emerald-500 h-1.5 rounded-full" style={{ width: `${result.ragas_eval.faithfulness}%` }}></div>
+                        </div>
+                      </div>
+
+                      {/* Answer Relevance */}
+                      <div className="p-3 bg-slate-950/60 rounded-xl border border-slate-800 flex flex-col space-y-1">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase">Answer Relevance</span>
+                        <div className="flex items-baseline justify-between">
+                          <span className="text-base font-extrabold text-indigo-400">{result.ragas_eval.answer_relevance}%</span>
+                          <span className="text-[9px] text-slate-500">Query Match</span>
+                        </div>
+                        <div className="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
+                          <div className="bg-indigo-500 h-1.5 rounded-full" style={{ width: `${result.ragas_eval.answer_relevance}%` }}></div>
+                        </div>
+                      </div>
+
+                      {/* Context Precision */}
+                      <div className="p-3 bg-slate-950/60 rounded-xl border border-slate-800 flex flex-col space-y-1">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase">Context Precision</span>
+                        <div className="flex items-baseline justify-between">
+                          <span className="text-base font-extrabold text-sky-400">{result.ragas_eval.context_precision}%</span>
+                          <span className="text-[9px] text-slate-500">Signal Ratio</span>
+                        </div>
+                        <div className="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
+                          <div className="bg-sky-500 h-1.5 rounded-full" style={{ width: `${result.ragas_eval.context_precision}%` }}></div>
+                        </div>
+                      </div>
+
+                      {/* Context Recall */}
+                      <div className="p-3 bg-slate-950/60 rounded-xl border border-slate-800 flex flex-col space-y-1">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase">Context Recall</span>
+                        <div className="flex items-baseline justify-between">
+                          <span className="text-base font-extrabold text-amber-400">{result.ragas_eval.context_recall}%</span>
+                          <span className="text-[9px] text-slate-500">Completeness</span>
+                        </div>
+                        <div className="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
+                          <div className="bg-amber-500 h-1.5 rounded-full" style={{ width: `${result.ragas_eval.context_recall}%` }}></div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {result.ragas_eval.breakdown?.eval_summary && (
+                      <p className="text-[11px] text-slate-400 italic pt-1 border-t border-slate-800/60">
+                        "{result.ragas_eval.breakdown.eval_summary}"
+                      </p>
                     )}
                   </div>
-
-                  {/* Cache Hit Badge */}
-                  {result.cached && (
-                    <div className="px-3 py-1 rounded-full border border-sky-500/40 bg-sky-500/10 text-sky-300 text-xs font-semibold flex items-center shadow-sm">
-                      <RefreshCw className="w-3.5 h-3.5 mr-1.5 text-sky-400" />
-                      <span>Cache Hit (Instant)</span>
-                    </div>
-                  )}
-
-                  {/* Web Fallback Run Badge */}
-                  {isWebResult && (
-                    <div className="px-3 py-1 rounded-full border border-sky-500/30 bg-sky-500/10 text-sky-400 text-xs font-semibold flex items-center">
-                      <Globe className="w-3.5 h-3.5 mr-1.5 text-sky-400 animate-pulse" />
-                      Includes Live Web Search Results
-                    </div>
-                  )}
-
-                  {/* RAGAS Overall Badge */}
-                  {result.ragas_eval && (
-                    <div className="px-3 py-1 rounded-full border border-purple-500/40 bg-purple-500/10 text-purple-300 text-xs font-semibold flex items-center shadow-sm">
-                      <BarChart3 className="w-3.5 h-3.5 mr-1.5 text-purple-400" />
-                      <span>RAGAS Benchmark: {result.ragas_eval.overall_ragas_score}/100 ({result.ragas_eval.verdict})</span>
-                    </div>
-                  )}
-
-                  {/* Retries count */}
-                  <span className="text-xs text-slate-500 py-1 px-2 self-center bg-slate-950/40 rounded border border-slate-800">
-                    {result.retries === 0 
-                      ? "Answered immediately" 
-                      : `Answered after ${result.retries} self-correction rewrite cycle${result.retries > 1 ? 's' : ''}`
-                    }
-                  </span>
-                </div>
-
-                {/* Grounding/Validation failure callout */}
-                {!result.is_valid && (
-                  <div className="mt-4 p-3 bg-amber-500/10 border border-amber-500/25 rounded-lg flex items-start text-xs text-amber-400 leading-normal">
-                    <AlertTriangle className="w-4 h-4 mr-2 shrink-0 text-amber-500 mt-0.5" />
-                    <span>
-                      <strong>Disclaimer:</strong> This response failed target grounding validation metrics (either low source correspondence or low confidence). Please evaluate citations and context carefully below.
-                    </span>
-                  </div>
                 )}
-              </div>
 
-              {/* RAGAS Quantitative Evaluation Benchmark Breakdown Panel */}
-              {result.ragas_eval && (
-                <div className="bg-slate-900/90 border border-purple-500/30 rounded-2xl p-5 shadow-xl space-y-3">
-                  <div className="flex items-center justify-between">
+                {/* Synthesized Answer Box */}
+                <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-xl">
+                  <div className="flex items-center justify-between mb-4 border-b border-slate-800 pb-3 flex-wrap gap-2">
+                    <div className="flex items-center space-x-2.5">
+                      <BookOpen className="w-5 h-5 text-indigo-400" />
+                      <h3 className="text-sm font-bold tracking-wider text-slate-300 uppercase">Chronos Synthesized Report</h3>
+                    </div>
+
+                    {/* Executive Report Action Buttons */}
                     <div className="flex items-center space-x-2">
-                      <BarChart3 className="w-4 h-4 text-purple-400" />
-                      <h3 className="text-xs font-bold uppercase tracking-wider text-purple-300">RAGAS Quantitative Benchmark Metrics</h3>
-                    </div>
-                    <span className="text-[10px] font-semibold text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded border border-purple-500/20">
-                      Overall Score: {result.ragas_eval.overall_ragas_score}%
-                    </span>
-                  </div>
+                      <button
+                        onClick={() => exportPDFReport(activeQuestion || 'Enterprise RAG Query', result)}
+                        className="px-3 py-1.5 bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/40 hover:border-indigo-500/60 text-xs font-semibold rounded-lg transition-all flex items-center space-x-1.5 shadow-sm"
+                        title="Generate printable PDF report with citations and audit trail"
+                      >
+                        <Printer className="w-3.5 h-3.5 text-indigo-400" />
+                        <span>Export PDF</span>
+                      </button>
 
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                    {/* Faithfulness */}
-                    <div className="p-3 bg-slate-950/60 rounded-xl border border-slate-800 flex flex-col space-y-1">
-                      <span className="text-[10px] font-bold text-slate-400 uppercase">Faithfulness</span>
-                      <div className="flex items-baseline justify-between">
-                        <span className="text-base font-extrabold text-emerald-400">{result.ragas_eval.faithfulness}%</span>
-                        <span className="text-[9px] text-slate-500">Zero Hallucination</span>
-                      </div>
-                      <div className="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
-                        <div className="bg-emerald-500 h-1.5 rounded-full" style={{ width: `${result.ragas_eval.faithfulness}%` }}></div>
-                      </div>
-                    </div>
+                      <button
+                        onClick={() => exportWordDocxReport(activeQuestion || 'Enterprise RAG Query', result)}
+                        className="px-3 py-1.5 bg-blue-600/20 hover:bg-blue-600/30 text-blue-300 border border-blue-500/40 hover:border-blue-500/60 text-xs font-semibold rounded-lg transition-all flex items-center space-x-1.5 shadow-sm"
+                        title="Export report as Word document (.docx)"
+                      >
+                        <FileText className="w-3.5 h-3.5 text-blue-400" />
+                        <span>Export Word</span>
+                      </button>
 
-                    {/* Answer Relevance */}
-                    <div className="p-3 bg-slate-950/60 rounded-xl border border-slate-800 flex flex-col space-y-1">
-                      <span className="text-[10px] font-bold text-slate-400 uppercase">Answer Relevance</span>
-                      <div className="flex items-baseline justify-between">
-                        <span className="text-base font-extrabold text-indigo-400">{result.ragas_eval.answer_relevance}%</span>
-                        <span className="text-[9px] text-slate-500">Query Match</span>
-                      </div>
-                      <div className="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
-                        <div className="bg-indigo-500 h-1.5 rounded-full" style={{ width: `${result.ragas_eval.answer_relevance}%` }}></div>
-                      </div>
-                    </div>
+                      <button
+                        onClick={() => exportExcelReport(activeQuestion || 'Enterprise RAG Query', result)}
+                        className="px-3 py-1.5 bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/40 hover:border-emerald-500/60 text-xs font-semibold rounded-lg transition-all flex items-center space-x-1.5 shadow-sm"
+                        title="Export financial data & evidence to Excel (.xlsx)"
+                      >
+                        <FileDown className="w-3.5 h-3.5 text-emerald-400" />
+                        <span>Export Excel</span>
+                      </button>
 
-                    {/* Context Precision */}
-                    <div className="p-3 bg-slate-950/60 rounded-xl border border-slate-800 flex flex-col space-y-1">
-                      <span className="text-[10px] font-bold text-slate-400 uppercase">Context Precision</span>
-                      <div className="flex items-baseline justify-between">
-                        <span className="text-base font-extrabold text-sky-400">{result.ragas_eval.context_precision}%</span>
-                        <span className="text-[9px] text-slate-500">Signal Ratio</span>
-                      </div>
-                      <div className="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
-                        <div className="bg-sky-500 h-1.5 rounded-full" style={{ width: `${result.ragas_eval.context_precision}%` }}></div>
-                      </div>
-                    </div>
-
-                    {/* Context Recall */}
-                    <div className="p-3 bg-slate-950/60 rounded-xl border border-slate-800 flex flex-col space-y-1">
-                      <span className="text-[10px] font-bold text-slate-400 uppercase">Context Recall</span>
-                      <div className="flex items-baseline justify-between">
-                        <span className="text-base font-extrabold text-amber-400">{result.ragas_eval.context_recall}%</span>
-                        <span className="text-[9px] text-slate-500">Completeness</span>
-                      </div>
-                      <div className="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
-                        <div className="bg-amber-500 h-1.5 rounded-full" style={{ width: `${result.ragas_eval.context_recall}%` }}></div>
-                      </div>
+                      <button
+                        onClick={() => downloadMarkdownReport(activeQuestion || 'Enterprise RAG Query', result)}
+                        className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-semibold rounded-lg transition-all flex items-center space-x-1.5 shadow-sm"
+                        title="Download raw report as Markdown (.md)"
+                      >
+                        <FileDown className="w-3.5 h-3.5 text-slate-400" />
+                        <span>Download .md</span>
+                      </button>
                     </div>
                   </div>
 
-                  {result.ragas_eval.breakdown?.eval_summary && (
-                    <p className="text-[11px] text-slate-400 italic pt-1 border-t border-slate-800/60">
-                      "{result.ragas_eval.breakdown.eval_summary}"
-                    </p>
+                  <div className="prose max-w-none">
+                    <ReactMarkdown>{result.answer}</ReactMarkdown>
+                  </div>
+                </div>
+
+                {/* Auto-Suggested Follow-up Questions */}
+                {result.suggested_questions && result.suggested_questions.length > 0 && (
+                  <div className="bg-slate-900/80 border border-indigo-500/30 rounded-2xl p-5 shadow-xl space-y-3">
+                    <div className="flex items-center space-x-2">
+                      <HelpCircle className="w-4 h-4 text-indigo-400" />
+                      <h4 className="text-xs font-bold uppercase tracking-wider text-slate-300">Suggested Follow-Up Questions</h4>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                      {result.suggested_questions.map((sq, sIdx) => (
+                        <button
+                          key={sIdx}
+                          onClick={() => {
+                            setQuestion(sq);
+                            handleSubmit(sq, false);
+                          }}
+                          className="p-3.5 rounded-xl bg-slate-950/60 hover:bg-indigo-600/10 border border-slate-800 hover:border-indigo-500/40 text-left text-xs font-medium text-slate-300 hover:text-indigo-200 transition-all flex items-start space-x-2 group cursor-pointer"
+                        >
+                          <ArrowRight className="w-3.5 h-3.5 text-indigo-400 mt-0.5 shrink-0 group-hover:translate-x-0.5 transition-transform" />
+                          <span className="leading-snug">{sq}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Citations list */}
+                <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-3">
+                  <div className="flex items-center space-x-2">
+                    <Layers className="w-4 h-4 text-indigo-400" />
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-slate-300">Sources & Citations Used</h4>
+                  </div>
+
+                  {result.citations.length === 0 ? (
+                    <p className="text-xs text-slate-500 italic">No formal source citations referenced in generated output.</p>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+                      {result.citations.map((citation, idx) => {
+                        const isWeb = citation.source === 'duckduckgo_web_search';
+                        return (
+                          <div
+                            key={idx}
+                            className={`p-3 rounded-lg border flex items-center space-x-3 text-xs ${isWeb ? 'bg-sky-500/5 border-sky-500/20 text-sky-300' : 'bg-slate-950/60 border-slate-800 text-slate-200'}`}
+                          >
+                            {isWeb ? (
+                              <Globe className="w-4 h-4 text-sky-400 shrink-0" />
+                            ) : (
+                              <FileText className="w-4 h-4 text-indigo-400 shrink-0" />
+                            )}
+                            <div className="overflow-hidden">
+                              <span className="block font-medium truncate">{citation.source}</span>
+                              <span className="block text-[10px] text-slate-500 truncate">Chunk ID: {citation.chunk_id}</span>
+                            </div>
+                            <span className={`ml-auto px-1.5 py-0.5 rounded text-[10px] font-semibold tracking-wide ${isWeb ? 'bg-sky-500/10 text-sky-400' : 'bg-indigo-500/10 text-indigo-400'}`}>
+                              {isWeb ? 'External' : 'Internal'}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
                   )}
                 </div>
-              )}
 
-              {/* Synthesized Answer Box */}
-              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-xl">
-                <div className="flex items-center justify-between mb-4 border-b border-slate-800 pb-3 flex-wrap gap-2">
-                  <div className="flex items-center space-x-2.5">
-                    <BookOpen className="w-5 h-5 text-indigo-400" />
-                    <h3 className="text-sm font-bold tracking-wider text-slate-300 uppercase">Chronos Synthesized Report</h3>
-                  </div>
-
-                  {/* Executive Report Action Buttons */}
-                  <div className="flex items-center space-x-2">
-                    <button
-                      onClick={() => exportPDFReport(activeQuestion || 'Enterprise RAG Query', result)}
-                      className="px-3 py-1.5 bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/40 hover:border-indigo-500/60 text-xs font-semibold rounded-lg transition-all flex items-center space-x-1.5 shadow-sm"
-                      title="Generate printable PDF report with citations and audit trail"
-                    >
-                      <Printer className="w-3.5 h-3.5 text-indigo-400" />
-                      <span>Export PDF</span>
-                    </button>
-
-                    <button
-                      onClick={() => exportWordDocxReport(activeQuestion || 'Enterprise RAG Query', result)}
-                      className="px-3 py-1.5 bg-blue-600/20 hover:bg-blue-600/30 text-blue-300 border border-blue-500/40 hover:border-blue-500/60 text-xs font-semibold rounded-lg transition-all flex items-center space-x-1.5 shadow-sm"
-                      title="Export report as Word document (.docx)"
-                    >
-                      <FileText className="w-3.5 h-3.5 text-blue-400" />
-                      <span>Export Word</span>
-                    </button>
-
-                    <button
-                      onClick={() => exportExcelReport(activeQuestion || 'Enterprise RAG Query', result)}
-                      className="px-3 py-1.5 bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/40 hover:border-emerald-500/60 text-xs font-semibold rounded-lg transition-all flex items-center space-x-1.5 shadow-sm"
-                      title="Export financial data & evidence to Excel (.xlsx)"
-                    >
-                      <FileDown className="w-3.5 h-3.5 text-emerald-400" />
-                      <span>Export Excel</span>
-                    </button>
-
-                    <button
-                      onClick={() => downloadMarkdownReport(activeQuestion || 'Enterprise RAG Query', result)}
-                      className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-semibold rounded-lg transition-all flex items-center space-x-1.5 shadow-sm"
-                      title="Download raw report as Markdown (.md)"
-                    >
-                      <FileDown className="w-3.5 h-3.5 text-slate-400" />
-                      <span>Download .md</span>
-                    </button>
-                  </div>
-                </div>
-                
-                <div className="prose max-w-none">
-                  <ReactMarkdown>{result.answer}</ReactMarkdown>
-                </div>
-              </div>
-
-              {/* Auto-Suggested Follow-up Questions */}
-              {result.suggested_questions && result.suggested_questions.length > 0 && (
-                <div className="bg-slate-900/80 border border-indigo-500/30 rounded-2xl p-5 shadow-xl space-y-3">
-                  <div className="flex items-center space-x-2">
-                    <HelpCircle className="w-4 h-4 text-indigo-400" />
-                    <h4 className="text-xs font-bold uppercase tracking-wider text-slate-300">Suggested Follow-Up Questions</h4>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                    {result.suggested_questions.map((sq, sIdx) => (
-                      <button
-                        key={sIdx}
-                        onClick={() => {
-                          setQuestion(sq);
-                          handleSubmit(sq, false);
-                        }}
-                        className="p-3.5 rounded-xl bg-slate-950/60 hover:bg-indigo-600/10 border border-slate-800 hover:border-indigo-500/40 text-left text-xs font-medium text-slate-300 hover:text-indigo-200 transition-all flex items-start space-x-2 group cursor-pointer"
-                      >
-                        <ArrowRight className="w-3.5 h-3.5 text-indigo-400 mt-0.5 shrink-0 group-hover:translate-x-0.5 transition-transform" />
-                        <span className="leading-snug">{sq}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Citations list */}
-              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-3">
-                <div className="flex items-center space-x-2">
-                  <Layers className="w-4 h-4 text-indigo-400" />
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-300">Sources & Citations Used</h4>
-                </div>
-                
-                {result.citations.length === 0 ? (
-                  <p className="text-xs text-slate-500 italic">No formal source citations referenced in generated output.</p>
-                ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
-                    {result.citations.map((citation, idx) => {
-                      const isWeb = citation.source === 'duckduckgo_web_search';
-                      return (
-                        <div 
-                          key={idx}
-                          className={`p-3 rounded-lg border flex items-center space-x-3 text-xs ${isWeb ? 'bg-sky-500/5 border-sky-500/20 text-sky-300' : 'bg-slate-950/60 border-slate-800 text-slate-200'}`}
-                        >
-                          {isWeb ? (
-                            <Globe className="w-4 h-4 text-sky-400 shrink-0" />
-                          ) : (
-                            <FileText className="w-4 h-4 text-indigo-400 shrink-0" />
-                          )}
-                          <div className="overflow-hidden">
-                            <span className="block font-medium truncate">{citation.source}</span>
-                            <span className="block text-[10px] text-slate-500 truncate">Chunk ID: {citation.chunk_id}</span>
-                          </div>
-                          <span className={`ml-auto px-1.5 py-0.5 rounded text-[10px] font-semibold tracking-wide ${isWeb ? 'bg-sky-500/10 text-sky-400' : 'bg-indigo-500/10 text-indigo-400'}`}>
-                            {isWeb ? 'External' : 'Internal'}
-                          </span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-
-              {/* Accordion: Context Used */}
-              <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
-                <button
-                  onClick={() => setExpandedContext(!expandedContext)}
-                  className="w-full px-6 py-4 flex items-center justify-between hover:bg-slate-800/40 transition-colors"
-                >
-                  <div className="flex items-center space-x-2.5">
-                    <Database className="w-4.5 h-4.5 text-indigo-400" />
-                    <span className="text-sm font-semibold text-slate-200">Retrieved Context Payload ({result.context_used.length} blocks)</span>
-                  </div>
-                  {expandedContext ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
-                </button>
-
-                {expandedContext && (
-                  <div className="border-t border-slate-800 p-6 space-y-4 bg-slate-900/40 max-h-96 overflow-y-auto">
-                    {result.context_used.map((ctx, idx) => {
-                      const isWeb = ctx.source === 'duckduckgo_web_search';
-                      return (
-                        <div key={idx} className="p-4 rounded-xl bg-slate-950/80 border border-slate-800 space-y-2.5">
-                          <div className="flex items-center justify-between text-xs border-b border-slate-900 pb-2">
-                            <span className="flex items-center font-semibold text-indigo-400">
-                              {isWeb ? <Globe className="w-3.5 h-3.5 mr-1.5 text-sky-400" /> : <FileText className="w-3.5 h-3.5 mr-1.5" />}
-                              Source: {ctx.source}
-                            </span>
-                            <span className="text-[10px] text-slate-500">Chunk ID: {ctx.id || 'N/A'}</span>
-                          </div>
-                          <p className="text-xs text-slate-300 leading-relaxed font-mono whitespace-pre-wrap">{ctx.text}</p>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-
-              {/* Accordion: Attempts Log */}
-              {result.attempts_log.length > 0 && (
+                {/* Accordion: Context Used */}
                 <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
                   <button
-                    onClick={() => setExpandedAttempts(!expandedAttempts)}
+                    onClick={() => setExpandedContext(!expandedContext)}
                     className="w-full px-6 py-4 flex items-center justify-between hover:bg-slate-800/40 transition-colors"
                   >
                     <div className="flex items-center space-x-2.5">
-                      <RefreshCw className="w-4.5 h-4.5 text-indigo-400" />
-                      <span className="text-sm font-semibold text-slate-200">Correction & Rewrite Attempts Log</span>
+                      <Database className="w-4.5 h-4.5 text-indigo-400" />
+                      <span className="text-sm font-semibold text-slate-200">Retrieved Context Payload ({result.context_used.length} blocks)</span>
                     </div>
-                    {expandedAttempts ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
+                    {expandedContext ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
                   </button>
 
-                  {expandedAttempts && (
-                    <div className="border-t border-slate-800 p-6 space-y-3 bg-slate-900/40">
-                      {result.attempts_log.map((log, idx) => (
-                        <div key={idx} className="p-3.5 rounded-lg bg-slate-950/80 border border-slate-800 flex flex-col space-y-2 text-xs">
-                          <div className="flex items-center justify-between font-semibold border-b border-slate-900 pb-1.5">
-                            <span className="text-indigo-400">Attempt #{log.retry_index + 1}</span>
-                            <span className={`px-1.5 py-0.5 rounded text-[10px] ${log.confidence >= 70 ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400'}`}>
-                              Confidence: {log.confidence}%
-                            </span>
+                  {expandedContext && (
+                    <div className="border-t border-slate-800 p-6 space-y-4 bg-slate-900/40 max-h-96 overflow-y-auto">
+                      {result.context_used.map((ctx, idx) => {
+                        const isWeb = ctx.source === 'duckduckgo_web_search';
+                        return (
+                          <div key={idx} className="p-4 rounded-xl bg-slate-950/80 border border-slate-800 space-y-2.5">
+                            <div className="flex items-center justify-between text-xs border-b border-slate-900 pb-2">
+                              <span className="flex items-center font-semibold text-indigo-400">
+                                {isWeb ? <Globe className="w-3.5 h-3.5 mr-1.5 text-sky-400" /> : <FileText className="w-3.5 h-3.5 mr-1.5" />}
+                                Source: {ctx.source}
+                              </span>
+                              <span className="text-[10px] text-slate-500">Chunk ID: {ctx.id || 'N/A'}</span>
+                            </div>
+                            <p className="text-xs text-slate-300 leading-relaxed font-mono whitespace-pre-wrap">{ctx.text}</p>
                           </div>
-                          <div>
-                            <span className="block text-[10px] text-slate-500 uppercase tracking-wider font-bold">Query Rewritten:</span>
-                            <code className="text-slate-300 font-mono text-[11px] bg-slate-900 px-1 py-0.5 rounded block mt-0.5">{log.query_used}</code>
-                          </div>
-                          <div>
-                            <span className="block text-[10px] text-slate-500 uppercase tracking-wider font-bold">Failure Reasoning:</span>
-                            <p className="text-slate-400 mt-0.5 italic">"{log.reasoning}"</p>
-                          </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   )}
                 </div>
-              )}
-            </div>
-          )}
-        </div>
-        </> }
+
+                {/* Accordion: Attempts Log */}
+                {result.attempts_log.length > 0 && (
+                  <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
+                    <button
+                      onClick={() => setExpandedAttempts(!expandedAttempts)}
+                      className="w-full px-6 py-4 flex items-center justify-between hover:bg-slate-800/40 transition-colors"
+                    >
+                      <div className="flex items-center space-x-2.5">
+                        <RefreshCw className="w-4.5 h-4.5 text-indigo-400" />
+                        <span className="text-sm font-semibold text-slate-200">Correction & Rewrite Attempts Log</span>
+                      </div>
+                      {expandedAttempts ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
+                    </button>
+
+                    {expandedAttempts && (
+                      <div className="border-t border-slate-800 p-6 space-y-3 bg-slate-900/40">
+                        {result.attempts_log.map((log, idx) => (
+                          <div key={idx} className="p-3.5 rounded-lg bg-slate-950/80 border border-slate-800 flex flex-col space-y-2 text-xs">
+                            <div className="flex items-center justify-between font-semibold border-b border-slate-900 pb-1.5">
+                              <span className="text-indigo-400">Attempt #{log.retry_index + 1}</span>
+                              <span className={`px-1.5 py-0.5 rounded text-[10px] ${log.confidence >= 70 ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400'}`}>
+                                Confidence: {log.confidence}%
+                              </span>
+                            </div>
+                            <div>
+                              <span className="block text-[10px] text-slate-500 uppercase tracking-wider font-bold">Query Rewritten:</span>
+                              <code className="text-slate-300 font-mono text-[11px] bg-slate-900 px-1 py-0.5 rounded block mt-0.5">{log.query_used}</code>
+                            </div>
+                            <div>
+                              <span className="block text-[10px] text-slate-500 uppercase tracking-wider font-bold">Failure Reasoning:</span>
+                              <p className="text-slate-400 mt-0.5 italic">"{log.reasoning}"</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </>}
       </main>
     </div>
   );
